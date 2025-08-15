@@ -1,0 +1,9 @@
+Manufacturer=Avago Technologies
+PartNumber=HDSP-521E
+PartCategory=Display
+PackageCategory=Dual-In-Line Sockets
+PinCount=18
+Version=1.1
+Released=2018-02-21 16:02:32
+Downloaded=2025-08-14 17:10:39
+3D=Y

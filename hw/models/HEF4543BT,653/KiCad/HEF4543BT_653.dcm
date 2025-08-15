@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP HEF4543BT,653
+D HEF4543B - BCD to 7-segment latch/decoder/driver@en-us
+K
+F https://assets.nexperia.com/documents/data-sheet/HEF4543B.pdf
+$ENDCMP
+#
+#End Doc Library

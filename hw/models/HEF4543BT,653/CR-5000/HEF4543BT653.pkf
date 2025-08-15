@@ -1,0 +1,10 @@
+(unit MM)
+
+(package "HEF4543BT653"
+    (type UNDEF)
+    (uver 2)
+    (mountForm default
+        (footprintRef "HEF4543BT653")
+        (spec "default")
+    )
+)

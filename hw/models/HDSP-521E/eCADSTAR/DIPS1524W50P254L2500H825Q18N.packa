@@ -1,0 +1,13 @@
+(unit MM)
+
+(package "HDSP-521E"
+    (type UNDEF)
+    (uver 2)
+    (cuser "SamacSys")
+    (uuser "SamacSys")
+    (utime 2018-06-06-11:10:45)
+    (mountForm default
+        (footprintRef "DIPS1524W50P254L2500H825Q18N")
+        (spec "System")
+    )
+)

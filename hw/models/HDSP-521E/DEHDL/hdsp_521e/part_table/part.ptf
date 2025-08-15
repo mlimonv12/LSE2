@@ -1,0 +1,11 @@
+FILE_TYPE = MULTI_PHYS_TABLE;
+
+PART 'HDSP_521E'
+CLASS = DISCRETE
+{========================================================================================}
+:"MANUFACTURER_NAME", "MANUFACTURER_PART_NUMBER"= "PART_NUMBER", "JEDEC_TYPE", "PACK_TYPE", "MOUSER_PART_NUMBER", "MOUSER_PRICE/STOCK", "DESCRIPTION", "DATASHEET", "HEIGHT";
+{========================================================================================}
+ "Avago Technologies", "HDSP-521E" (!) = "", "DIPS1524W50P254L2500H825Q18N", "Dual-In-Line Sockets", "630-HDSP-521E", "https://www.mouser.co.uk/ProductDetail/Broadcom-Avago/HDSP-521E?qs=pQfy5%252BKCabIW5pTqWifotQ%3D%3D", "AVAGO TECHNOLOGIES - HDSP-521E - LED DISPLAY, DUAL, 0.56", HE-RED", "https://componentsearchengine.com/Datasheets/2/HDSP-521E.pdf", "8.25 mm"
+END_PART
+
+END.

@@ -1,0 +1,9 @@
+2 connexions SPI - motors
+LED alimentacio
+LED RGB - status
+LED power GY-91, (74LVC1G66 per apagar)
+
+i2c - driver 2dig7seg
+
+i2c - GY-91
+SPI - nRF24L01 (+ CS + CE)

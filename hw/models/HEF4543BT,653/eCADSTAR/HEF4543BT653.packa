@@ -1,0 +1,13 @@
+(unit MM)
+
+(package "HEF4543BT_653"
+    (type UNDEF)
+    (uver 2)
+    (cuser "SamacSys")
+    (uuser "SamacSys")
+    (utime 2022-07-04-11:32:01)
+    (mountForm default
+        (footprintRef "HEF4543BT653")
+        (spec "System")
+    )
+)
