@@ -1,9 +1,0 @@
-Manufacturer=Nexperia
-PartNumber=HEF4543BT,653
-PartCategory=Integrated Circuit
-PackageCategory=Other
-PinCount=16
-Version=2.2
-Released=2019-11-12 07:41:52
-Downloaded=2025-08-14 18:00:59
-3D=Y
