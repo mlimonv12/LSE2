@@ -47,48 +47,51 @@ GPIO4.$name           = "D0_R";
 GPIO4.gpioPin.$assign = "boosterpack2.10";
 
 GPIO5.$name           = "D3_L";
-GPIO5.gpioPin.$assign = "boosterpack2.26";
+GPIO5.gpioPin.$assign = "boosterpack.26";
 
 GPIO6.$name           = "D2_L";
-GPIO6.gpioPin.$assign = "boosterpack2.37";
+GPIO6.gpioPin.$assign = "boosterpack.29";
 
 GPIO7.$name           = "D1_L";
-GPIO7.gpioPin.$assign = "boosterpack2.25";
+GPIO7.gpioPin.$assign = "boosterpack.8";
 
 GPIO8.$name           = "D0_L";
-GPIO8.gpioPin.$assign = "boosterpack2.7";
+GPIO8.gpioPin.$assign = "boosterpack.25";
 
 GPIO9.$name           = "IMU_PWR_ENABLE";
-GPIO9.gpioPin.$assign = "boosterpack2.3";
+GPIO9.gpioPin.$assign = "boosterpack.30";
 
 GPIO10.$name           = "RF_CE";
-GPIO10.gpioPin.$assign = "boosterpack2.4";
+GPIO10.gpioPin.$assign = "boosterpack.12";
 
 GPIO11.$name           = "LED_R";
 GPIO11.gpioPin.$assign = "boosterpack.3";
 
 GPIO12.$name           = "LED_G";
-GPIO12.gpioPin.$assign = "boosterpack.4";
+GPIO12.gpioPin.$assign = "boosterpack.23";
 
 GPIO13.$name           = "LED_B";
-GPIO13.gpioPin.$assign = "boosterpack.5";
+GPIO13.gpioPin.$assign = "boosterpack.24";
 
 GPIO14.$name           = "CA_CC";
-GPIO14.gpioPin.$assign = "boosterpack2.23";
+GPIO14.gpioPin.$assign = "boosterpack2.29";
 
 I2C1.$name = "CONFIG_I2C_0";
 
 SPI1.$name               = "SPI_L_MOTOR";
+SPI1.mode                = "Four Pin SS Active Low";
 SPI1.spi.sclkPin.$assign = "boosterpack.7";
 SPI1.spi.misoPin.$assign = "boosterpack.14";
 SPI1.spi.mosiPin.$assign = "boosterpack.15";
 
 SPI2.$name               = "SPI_R_MOTOR";
+SPI2.mode                = "Four Pin SS Active Low";
 SPI2.spi.sclkPin.$assign = "boosterpack2.24";
 SPI2.spi.misoPin.$assign = "boosterpack.6";
 SPI2.spi.mosiPin.$assign = "boosterpack.2";
 
 SPI3.$name               = "SPI_RF";
+SPI3.mode                = "Four Pin SS Active Low";
 SPI3.spi.sclkPin.$assign = "boosterpack.38";
 SPI3.spi.misoPin.$assign = "boosterpack2.14";
 SPI3.spi.mosiPin.$assign = "boosterpack.40";
@@ -102,11 +105,14 @@ I2C1.i2c.$suggestSolution              = "I2C1";
 I2C1.i2c.sdaPin.$suggestSolution       = "boosterpack2.40";
 I2C1.i2c.sclPin.$suggestSolution       = "boosterpack.37";
 SPI1.spi.$suggestSolution              = "SSI2";
+SPI1.spi.ssPin.$suggestSolution        = "boosterpack2.2";
 SPI1.spi.dmaRxChannel.$suggestSolution = "UDMA_CH12";
 SPI1.spi.dmaTxChannel.$suggestSolution = "UDMA_CH13";
 SPI2.spi.$suggestSolution              = "SSI1";
+SPI2.spi.ssPin.$suggestSolution        = "boosterpack2.23";
 SPI2.spi.dmaRxChannel.$suggestSolution = "UDMA_CH10";
 SPI2.spi.dmaTxChannel.$suggestSolution = "UDMA_CH11";
 SPI3.spi.$suggestSolution              = "SSI3";
+SPI3.spi.ssPin.$suggestSolution        = "boosterpack.39";
 SPI3.spi.dmaRxChannel.$suggestSolution = "UDMA_CH14";
 SPI3.spi.dmaTxChannel.$suggestSolution = "UDMA_CH15";
