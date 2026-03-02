@@ -73,7 +73,7 @@ GPIO12.gpioPin.$assign = "boosterpack.23";
 GPIO13.$name           = "LED_B";
 GPIO13.gpioPin.$assign = "boosterpack.24";
 
-GPIO14.$name           = "CA_CC";
+GPIO14.$name           = "CA_CC_R";
 GPIO14.gpioPin.$assign = "boosterpack2.29";
 
 I2C1.$name = "CONFIG_I2C_0";

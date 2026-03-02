@@ -1,0 +1,11 @@
+FILE_TYPE = MULTI_PHYS_TABLE;
+
+PART 'NDS332P'
+CLASS = DISCRETE
+{========================================================================================}
+:"MANUFACTURER_NAME", "MANUFACTURER_PART_NUMBER"= "PART_NUMBER", "JEDEC_TYPE", "PACK_TYPE", "MOUSER_PART_NUMBER", "MOUSER_PRICE/STOCK", "DESCRIPTION", "DATASHEET", "HEIGHT";
+{========================================================================================}
+ "onsemi", "NDS332P" (!) = "", "SOT95P237X112-3N", "SOT23 (3-Pin)", "512-NDS332P", "https://www.mouser.co.uk/ProductDetail/onsemi-Fairchild/NDS332P?qs=FOlmdCx%252BAA3elNuimac4rQ%3D%3D", "Proprietary package design using copper lead frame for superior thermal and electrical capabilities; High density cell design for extremely low RDS(ON); Very low level gate drive requirements allowing direct operation in 3V circuits VGS(th) < 1.0V; -1 A, -20 V RDS(ON) = 0.41 @ VGS= -2.7 V RDS(ON) = 0.3  @ VGS = -4.5 V; Exceptional on-resistance and maximum DC current capability; Compact industry standard SOT-23 surface Mount package", "https://www.onsemi.com/pub/Collateral/NDS332P-D.PDF", "1.12 mm"
+END_PART
+
+END.

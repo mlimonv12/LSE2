@@ -8,113 +8,6 @@
 		(title "LSE2 - Adrià Brú i Miquel Limón")
 	)
 	(lib_symbols
-		(symbol "Connector:TestPoint"
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 0.762)
-				(hide yes)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "TP"
-				(at 0 6.858 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "TestPoint"
-				(at 0 5.08 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 5.08 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "~"
-				(at 5.08 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "test point"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "test point tp"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "Pin* Test*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "TestPoint_0_1"
-				(circle
-					(center 0 3.302)
-					(radius 0.762)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "TestPoint_1_1"
-				(pin passive line
-					(at 0 0 90)
-					(length 2.54)
-					(name "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "Connector_Generic:Conn_01x02"
 			(pin_names
 				(offset 1.016)
@@ -4889,6 +4782,16 @@
 		)
 		(uuid "305d43c3-d4da-48eb-a374-d0c269f26b8a")
 	)
+	(text "PWR test"
+		(exclude_from_sim no)
+		(at 29.718 100.584 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "3de7810c-6393-4738-8b3e-9fbd92b851e6")
+	)
 	(text "Mòdul RF"
 		(exclude_from_sim no)
 		(at 257.048 22.352 0)
@@ -5027,22 +4930,10 @@
 		(uuid "e862b12e-1839-40b2-89b3-766bed3bc91f")
 	)
 	(junction
-		(at 87.63 52.07)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "f1c85315-5a6a-4c4c-a291-adca6767d7ad")
-	)
-	(junction
 		(at 26.67 176.53)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f77d5c0e-9f28-4b97-b033-3d097cbb5acf")
-	)
-	(junction
-		(at 39.37 49.53)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "f9e9f636-a775-4c57-a143-20d4de43849a")
 	)
 	(no_connect
 		(at 68.58 96.52)
@@ -5922,7 +5813,7 @@
 	)
 	(wire
 		(pts
-			(xy 35.56 49.53) (xy 39.37 49.53)
+			(xy 35.56 49.53) (xy 45.72 49.53)
 		)
 		(stroke
 			(width 0)
@@ -6102,6 +5993,16 @@
 	)
 	(wire
 		(pts
+			(xy 21.59 107.95) (xy 29.21 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "73431b2b-8efb-4dda-a141-c94cc0d7ca1f")
+	)
+	(wire
+		(pts
 			(xy 260.35 77.47) (xy 260.35 80.01)
 		)
 		(stroke
@@ -6139,16 +6040,6 @@
 			(type default)
 		)
 		(uuid "75d677e7-1db7-4bc8-9ae4-ab229136c46d")
-	)
-	(wire
-		(pts
-			(xy 39.37 49.53) (xy 45.72 49.53)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "77200a50-7e0e-47ca-80cd-3a1b155b8ad2")
 	)
 	(wire
 		(pts
@@ -6442,7 +6333,7 @@
 	)
 	(wire
 		(pts
-			(xy 99.06 52.07) (xy 87.63 52.07)
+			(xy 81.28 52.07) (xy 99.06 52.07)
 		)
 		(stroke
 			(width 0)
@@ -6752,16 +6643,6 @@
 	)
 	(wire
 		(pts
-			(xy 87.63 52.07) (xy 81.28 52.07)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d0d336cb-e1af-42c2-b3df-55fd369a317c")
-	)
-	(wire
-		(pts
 			(xy 231.14 144.78) (xy 231.14 146.05)
 		)
 		(stroke
@@ -6899,6 +6780,16 @@
 			(type default)
 		)
 		(uuid "dd062bdf-daf1-4d57-9268-6764bd874d47")
+	)
+	(wire
+		(pts
+			(xy 21.59 105.41) (xy 29.21 105.41)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "df6711b9-fb31-4635-94f9-4fad1d657237")
 	)
 	(wire
 		(pts
@@ -8705,73 +8596,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 87.63 52.07 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "09992a5b-9a2c-46b5-ba6f-95ff1cb05f63")
-		(property "Reference" "GND1"
-			(at 90.17 47.4979 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 90.17 50.0379 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
-			(at 92.71 52.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 92.71 52.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 87.63 52.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "019c520f-edd6-41d3-8d7d-4d3394c94719")
-		)
-		(instances
-			(project ""
-				(path "/45a51f49-1af1-447d-b599-00b362b8d1f6"
-					(reference "GND1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 62.23 184.15 0)
 		(unit 1)
@@ -9488,73 +9312,6 @@
 			(project ""
 				(path "/45a51f49-1af1-447d-b599-00b362b8d1f6"
 					(reference "J1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 39.37 49.53 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "2a2dde7a-3756-447a-9fbd-27bd1d40c833")
-		(property "Reference" "3V3"
-			(at 41.91 44.9579 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 41.91 47.4979 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
-			(at 44.45 49.53 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 44.45 49.53 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 39.37 49.53 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "9928dc8e-e14e-4258-b5e4-a76921df9d26")
-		)
-		(instances
-			(project "lse2_board"
-				(path "/45a51f49-1af1-447d-b599-00b362b8d1f6"
-					(reference "3V3")
 					(unit 1)
 				)
 			)
@@ -12469,6 +12226,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 21.59 107.95 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b2c7a6ee-7ec3-470b-88c3-34da3a749b10")
+		(property "Reference" "#PWR032"
+			(at 21.59 114.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 21.59 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 21.59 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 21.59 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 21.59 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "dea8b8b5-e6b3-40ae-a2b5-e01bb2e5e3f5")
+		)
+		(instances
+			(project "lse2_board"
+				(path "/45a51f49-1af1-447d-b599-00b362b8d1f6"
+					(reference "#PWR032")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:LED_RKGB")
 		(at 210.82 36.83 0)
 		(mirror y)
@@ -13017,6 +12840,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+3.3V")
+		(at 21.59 105.41 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "cc9261fa-0a0e-4429-a421-55a2da7b7837")
+		(property "Reference" "#PWR031"
+			(at 21.59 109.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 21.59 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 21.59 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 21.59 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 21.59 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "c4ee3bf9-9101-485d-91d8-8a6dfe39aba9")
+		)
+		(instances
+			(project "lse2_board"
+				(path "/45a51f49-1af1-447d-b599-00b362b8d1f6"
+					(reference "#PWR031")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 26.67 180.34 0)
 		(unit 1)
@@ -13143,6 +13032,76 @@
 			(project "lse2_board"
 				(path "/45a51f49-1af1-447d-b599-00b362b8d1f6"
 					(reference "#PWR028")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x02")
+		(at 34.29 105.41 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d57850db-79d5-4979-b4a6-b2801390a8ad")
+		(property "Reference" "J6"
+			(at 36.83 105.4099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Conn_01x02"
+			(at 36.83 107.9499 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
+			(at 34.29 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 34.29 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 34.29 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "495720ae-dab5-4355-b775-08a8d2565580")
+		)
+		(pin "1"
+			(uuid "0a950d27-1e76-442f-8ac1-759aacd04efa")
+		)
+		(instances
+			(project "lse2_board"
+				(path "/45a51f49-1af1-447d-b599-00b362b8d1f6"
+					(reference "J6")
 					(unit 1)
 				)
 			)

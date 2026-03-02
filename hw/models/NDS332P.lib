@@ -1,0 +1,34 @@
+EESchema-LIBRARY Version 2.3
+#encoding utf-8
+#SamacSys ECAD Model NDS332P
+#/1043565/1749552/2.50/3/2/MOSFET (P-Channel)
+DEF NDS332P Q 0 30 Y Y 1 F N
+F0 "Q" 450 150 50 H V L CNN
+F1 "NDS332P" 450 50 50 H V L CNN
+F2 "SOT95P237X112-3N" 450 -50 50 H I L CNN
+F3 "https://www.onsemi.com/pub/Collateral/NDS332P-D.PDF" 450 -150 50 H I L CNN
+F4 "Proprietary package design using copper lead frame for superior thermal and electrical capabilities; High density cell design for extremely low RDS(ON); Very low level gate drive requirements allowing direct operation in 3V circuits VGS(th) < 1.0V; -1 A, -20 V RDS(ON) = 0.41 @ VGS= -2.7 V RDS(ON) = 0.3  @ VGS = -4.5 V; Exceptional on-resistance and maximum DC current capability; Compact industry standard SOT-23 surface Mount package" 450 -250 50 H I L CNN "Description"
+F5 "1.12" 450 -350 50 H I L CNN "Height"
+F6 "512-NDS332P" 450 -450 50 H I L CNN "Mouser Part Number"
+F7 "https://www.mouser.co.uk/ProductDetail/onsemi-Fairchild/NDS332P?qs=FOlmdCx%252BAA3elNuimac4rQ%3D%3D" 450 -550 50 H I L CNN "Mouser Price/Stock"
+F8 "onsemi" 450 -650 50 H I L CNN "Manufacturer_Name"
+F9 "NDS332P" 450 -750 50 H I L CNN "Manufacturer_Part_Number"
+DRAW
+X ~ 1 0 0 100 R 50 50 0 0 P
+X ~ 3 300 400 100 D 50 50 0 0 P
+X ~ 2 300 -200 100 U 50 50 0 0 P
+P 2 0 1 6 300 100 300 -100 N
+P 2 0 1 6 300 200 300 300 N
+P 3 0 1 6 100 0 200 0 200 200 N
+P 2 0 1 6 300 100 230 100 N
+P 2 0 1 6 300 200 230 200 N
+P 2 0 1 6 230 0 300 0 N
+P 2 0 1 6 230 220 230 180 N
+P 2 0 1 6 230 -20 230 20 N
+P 2 0 1 6 230 80 230 120 N
+C 250 100 150 0 1 10 N
+P 4 0 1 10 300 100 260 120 260 80 300 100 F
+ENDDRAW
+ENDDEF
+#
+#End Library

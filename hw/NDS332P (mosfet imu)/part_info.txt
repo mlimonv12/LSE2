@@ -1,0 +1,9 @@
+Manufacturer=onsemi
+PartNumber=NDS332P
+PartCategory=MOSFET (P-Channel)
+PackageCategory=SOT23 (3-Pin)
+PinCount=3
+Version=2.1
+Released=2019-08-18 02:18:35
+Downloaded=2026-03-01 16:25:26
+3D=Y

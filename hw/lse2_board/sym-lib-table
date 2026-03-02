@@ -5,4 +5,5 @@
   (lib (name "HEF4543BT_653")(type "KiCad")(uri "C:/Users/PC/Desktop/LSE/LSE2/hw/models/HEF4543BT_653.kicad_sym")(options "")(descr ""))
   (lib (name "HDSP-521E")(type "KiCad")(uri "C:/Users/PC/Desktop/LSE/LSE2/hw/models/HDSP-521E.kicad_sym")(options "")(descr ""))
   (lib (name "SN74LVC1G66DRLR")(type "KiCad")(uri "C:/Users/PC/Desktop/LSE/LSE2/hw/models/SN74LVC1G66DRLR.kicad_sym")(options "")(descr ""))
+  (lib (name "NDS332P")(type "KiCad")(uri "C:/Users/PC/Desktop/LSE/LSE2/hw/models/NDS332P.kicad_sym")(options "")(descr ""))
 )

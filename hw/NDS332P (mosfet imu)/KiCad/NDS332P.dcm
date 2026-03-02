@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP NDS332P
+D Proprietary package design using copper lead frame for superior thermal and electrical capabilities; High density cell design for extremely low RDS(ON); Very low level gate drive requirements allowing direct operation in 3V circuits VGS(th) < 1.0V; -1 A, -20 V RDS(ON) = 0.41 @ VGS= -2.7 V RDS(ON) = 0.3  @ VGS = -4.5 V; Exceptional on-resistance and maximum DC current capability; Compact industry standard SOT-23 surface Mount package
+K
+F https://www.onsemi.com/pub/Collateral/NDS332P-D.PDF
+$ENDCMP
+#
+#End Doc Library
