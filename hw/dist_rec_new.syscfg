@@ -22,11 +22,11 @@ const GPIO9  = GPIO.addInstance();
 const GPIO10 = GPIO.addInstance();
 const GPIO11 = GPIO.addInstance();
 const GPIO12 = GPIO.addInstance();
-const GPIO13 = GPIO.addInstance();
 const I2C    = scripting.addModule("/ti/drivers/I2C", {}, false);
 const I2C1   = I2C.addInstance();
 const SPI    = scripting.addModule("/ti/drivers/SPI", {}, false);
 const SPI1   = SPI.addInstance();
+const SPI2   = SPI.addInstance();
 
 /**
  * Write custom configuration values to the imported modules.
@@ -37,54 +37,59 @@ GPIO1.gpioPin.$assign = "boosterpack2.19";
 GPIO2.$name           = "SS_R";
 GPIO2.gpioPin.$assign = "boosterpack2.10";
 
-GPIO3.$name           = "SS_L";
-GPIO3.gpioPin.$assign = "boosterpack2.30";
+GPIO3.$name           = "SS_RF";
+GPIO3.gpioPin.$assign = "boosterpack2.17";
 
-GPIO4.$name           = "SS_RF";
-GPIO4.gpioPin.$assign = "boosterpack2.17";
+GPIO4.$name           = "RF_CE";
+GPIO4.gpioPin.$assign = "boosterpack2.37";
 
-GPIO5.$name           = "RF_CE";
-GPIO5.gpioPin.$assign = "boosterpack2.37";
+GPIO5.$name = "D0_L";
 
-GPIO6.$name = "D0_L";
+GPIO6.$name = "D1_L";
 
-GPIO7.$name = "D1_L";
+GPIO7.$name = "D2_L";
 
-GPIO8.$name = "D2_L";
+GPIO8.$name = "D3_L";
 
-GPIO9.$name = "D3_L";
+GPIO9.$name = "D0_R";
 
-GPIO10.$name = "D0_R";
+GPIO10.$name = "D1_R";
 
-GPIO11.$name = "D1_R";
+GPIO11.$name = "D2_R";
 
-GPIO12.$name = "D2_R";
-
-GPIO13.$name = "D3_R";
+GPIO12.$name = "D3_R";
 
 I2C1.$name       = "I2C_GY";
-I2C1.i2c.$assign = "I2C4";
+I2C1.i2c.$assign = "I2C5";
 
-SPI1.$name               = "SPI_RF_MOTORS";
+SPI1.$name               = "SPI_MOTORS";
 SPI1.spi.$assign         = "SSI3";
-SPI1.spi.sclkPin.$assign = "boosterpack2.7";
 SPI1.spi.mosiPin.$assign = "boosterpack2.15";
+
+SPI2.$name       = "SPI_RF";
+SPI2.spi.$assign = "SSI2";
 
 /**
  * Pinmux solution for unlocked pins/peripherals. This ensures that minor changes to the automatic solver in a future
  * version of the tool will not impact the pinmux you originally saw.  These lines can be completely deleted in order to
  * re-solve from scratch.
  */
-GPIO6.gpioPin.$suggestSolution         = "boosterpack.14";
-GPIO7.gpioPin.$suggestSolution         = "boosterpack.15";
-GPIO8.gpioPin.$suggestSolution         = "boosterpack2.2";
-GPIO9.gpioPin.$suggestSolution         = "boosterpack.7";
-GPIO10.gpioPin.$suggestSolution        = "boosterpack2.12";
-GPIO11.gpioPin.$suggestSolution        = "boosterpack.26";
-GPIO12.gpioPin.$suggestSolution        = "boosterpack.25";
-GPIO13.gpioPin.$suggestSolution        = "boosterpack.24";
-I2C1.i2c.sdaPin.$suggestSolution       = "boosterpack2.31";
-I2C1.i2c.sclPin.$suggestSolution       = "boosterpack2.32";
+GPIO5.gpioPin.$suggestSolution         = "boosterpack2.2";
+GPIO6.gpioPin.$suggestSolution         = "boosterpack2.7";
+GPIO7.gpioPin.$suggestSolution         = "boosterpack2.12";
+GPIO8.gpioPin.$suggestSolution         = "boosterpack.26";
+GPIO9.gpioPin.$suggestSolution         = "boosterpack.25";
+GPIO10.gpioPin.$suggestSolution        = "boosterpack.24";
+GPIO11.gpioPin.$suggestSolution        = "boosterpack.23";
+GPIO12.gpioPin.$suggestSolution        = "boosterpack2.25";
+I2C1.i2c.sdaPin.$suggestSolution       = "boosterpack2.24";
+I2C1.i2c.sclPin.$suggestSolution       = "boosterpack2.23";
+SPI1.spi.sclkPin.$suggestSolution      = "boosterpack.38";
 SPI1.spi.misoPin.$suggestSolution      = "boosterpack2.14";
 SPI1.spi.dmaRxChannel.$suggestSolution = "UDMA_CH14";
 SPI1.spi.dmaTxChannel.$suggestSolution = "UDMA_CH15";
+SPI2.spi.sclkPin.$suggestSolution      = "boosterpack.7";
+SPI2.spi.misoPin.$suggestSolution      = "boosterpack.14";
+SPI2.spi.mosiPin.$suggestSolution      = "boosterpack.15";
+SPI2.spi.dmaRxChannel.$suggestSolution = "UDMA_CH12";
+SPI2.spi.dmaTxChannel.$suggestSolution = "UDMA_CH13";
