@@ -1,0 +1,15 @@
+"Id";"Identificador";"Huella";"Cantidad";"Identificación";"Suministrador y ref";
+1;"IC2,IC1";"HEF4543BT653";2;"DIGIT_DRIVER";;;
+2;"J5";"PinHeader_2x04_P2.54mm_Vertical";1;"Conn_02x04_Odd_Even";;;
+3;"J9";"PinHeader_2x05_P2.54mm_Vertical";1;"Conn_02x05_Odd_Even";;;
+4;"C4,C5,C2,C6,C3,C1";"C_1206_3216Metric";6;"C";;;
+5;"R12,R18,R20,R1,R13,R2,R6,R8,R16,R4,R9,R17,R14,R11,R7,R10,R5,R15,R19,R3";"R_1206_3216Metric";20;"R";;;
+6;"D1,D2";"LED_D3.0mm";2;"LED";;;
+7;"J4,J3";"PinHeader_2x10_P2.54mm_Vertical";2;"Conn_02x10_Odd_Even";;;
+8;"Q1";"SuperSOT-3";1;"NDS332P";;;
+9;"DS1";"DA56-11CGKWA";1;"DOUBLE_DIGIT_DISPLAY";;;
+10;"U1";"nRF24L01_Breakout";1;"NRF24L01_Breakout";;;
+11;"J8";"GY-91";1;"Conn_01x08";;;
+12;"J7";"PinHeader_2x02_P2.54mm_Vertical";1;"Conn_02x02_Counter_Clockwise";;;
+13;"J6";"PinHeader_1x02_P2.54mm_Vertical";1;"Conn_01x02";;;
+14;"D3";"LED_D5.0mm-4_RGB";1;"LED_RKGB";;;

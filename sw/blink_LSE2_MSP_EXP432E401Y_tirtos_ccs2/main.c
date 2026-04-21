@@ -47,8 +47,13 @@
 #include "ti_drivers_config.h"
 
 /*prototips funcions*/
-void Send_data_idle_fxn(void);
+
+
+void toggleLedIdleFxn(void);
+
 void Wait_cycles(uint32_t numberCycles);
+
+
 /*
  *  ======== main ========
  */
@@ -56,25 +61,20 @@ int main()
 {
     /* Call driver init functions */
     Board_init();
-
     GPIO_init();
 
-    System_printf("Inicialitzacio BIOS...\n");
-    System_flush();
+    GPIO_write(CONFIG_GPIO_1, CONFIG_GPIO_LED_ON);
 
-    /*
-     *  normal BIOS programs, would call BIOS_start() to enable interrupts
-     *  and start the scheduler and kick BIOS into gear.  But, this program
-     *  is a simple sanity test and calls BIOS_exit() instead.
-     */
-    BIOS_start();  /* terminates program and dumps SysMin output */
-    return(0);
+    BIOS_start();
+
+    return (0);
 }
 
-void Send_data_idle_fxn(void)
+
+void toggleLedIdleFxn(void)
 {
     GPIO_toggle(CONFIG_GPIO_1); //commutem el led vermell
-    Wait_cycles(2*960000);     //esperem un numero de cicles qualsevol
+    Wait_cycles(960000*4);     //esperem un numero de cicles qualsevol
 }
 
 void Wait_cycles(uint32_t numberCycles)
