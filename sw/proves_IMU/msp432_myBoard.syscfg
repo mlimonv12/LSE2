@@ -11,12 +11,15 @@
 const GPIO  = scripting.addModule("/ti/drivers/GPIO", {}, false);
 const GPIO1 = GPIO.addInstance();
 const GPIO2 = GPIO.addInstance();
+const GPIO3 = GPIO.addInstance();
 const I2C   = scripting.addModule("/ti/drivers/I2C", {}, false);
 const I2C1  = I2C.addInstance();
 const Power = scripting.addModule("/ti/drivers/Power");
 const RTOS  = scripting.addModule("/ti/drivers/RTOS");
 const SPI   = scripting.addModule("/ti/drivers/SPI", {}, false);
 const SPI1  = SPI.addInstance();
+const UART  = scripting.addModule("/ti/drivers/UART", {}, false);
+const UART1 = UART.addInstance();
 
 /**
  * Write custom configuration values to the imported modules.
@@ -27,11 +30,23 @@ GPIO1.$hardware = system.deviceData.board.components.D1;
 GPIO2.$name     = "CONFIG_GPIO_1";
 GPIO2.$hardware = system.deviceData.board.components.D2;
 
-I2C1.$name = "CONFIG_I2C_0";
+GPIO3.$name           = "SS_R";
+GPIO3.mode            = "Output";
+GPIO3.gpioPin.$assign = "boosterpack2.10";
+
+I2C1.$name              = "CONFIG_I2C_0";
+I2C1.i2c.sdaPin.$assign = "boosterpack2.24";
+I2C1.i2c.sclPin.$assign = "boosterpack2.23";
 
 
 SPI1.$name               = "CONFIG_SPI_0";
-SPI1.spi.sclkPin.$assign = "boosterpack.7";
+SPI1.spi.$assign         = "SSI3";
+SPI1.spi.sclkPin.$assign = "boosterpack2.7";
+SPI1.spi.misoPin.$assign = "boosterpack2.14";
+SPI1.spi.mosiPin.$assign = "boosterpack2.15";
+
+UART1.$name     = "CONFIG_UART_0";
+UART1.$hardware = system.deviceData.board.components.XDS110UART;
 
 /**
  * Pinmux solution for unlocked pins/peripherals. This ensures that minor changes to the automatic solver in a future
@@ -40,12 +55,10 @@ SPI1.spi.sclkPin.$assign = "boosterpack.7";
  */
 GPIO1.gpioPin.$suggestSolution         = "expansion.87";
 GPIO2.gpioPin.$suggestSolution         = "expansion.85";
-I2C1.i2c.$suggestSolution              = "I2C1";
-I2C1.i2c.sdaPin.$suggestSolution       = "boosterpack2.40";
-I2C1.i2c.sclPin.$suggestSolution       = "boosterpack.37";
+I2C1.i2c.$suggestSolution              = "I2C5";
 RTOS.timer0.resource.$suggestSolution  = "Timer0";
-SPI1.spi.$suggestSolution              = "SSI2";
-SPI1.spi.misoPin.$suggestSolution      = "boosterpack.14";
-SPI1.spi.mosiPin.$suggestSolution      = "boosterpack.15";
-SPI1.spi.dmaRxChannel.$suggestSolution = "UDMA_CH12";
-SPI1.spi.dmaTxChannel.$suggestSolution = "UDMA_CH13";
+SPI1.spi.dmaRxChannel.$suggestSolution = "UDMA_CH14";
+SPI1.spi.dmaTxChannel.$suggestSolution = "UDMA_CH15";
+UART1.uart.$suggestSolution            = "UART0";
+UART1.uart.txPin.$suggestSolution      = "expansion.76";
+UART1.uart.rxPin.$suggestSolution      = "expansion.74";

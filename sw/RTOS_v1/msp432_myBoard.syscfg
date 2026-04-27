@@ -1,0 +1,58 @@
+/**
+ * These arguments were used when this file was generated. They will be automatically applied on subsequent loads
+ * via the GUI or CLI. Run CLI with '--help' for additional information on how to override these arguments.
+ * @cliArgs --board "/ti/boards/MSP_EXP432E401Y" --product "simplelink_msp432e4_sdk@4.20.00.12"
+ * @versions {"data":"2020050718","timestamp":"2020050718","tool":"1.5.0+1353","templates":"2020050718"}
+ */
+
+/**
+ * Import the modules used in this configuration.
+ */
+const GPIO  = scripting.addModule("/ti/drivers/GPIO", {}, false);
+const GPIO1 = GPIO.addInstance();
+const GPIO2 = GPIO.addInstance();
+const GPIO3 = GPIO.addInstance();
+const I2C   = scripting.addModule("/ti/drivers/I2C", {}, false);
+const I2C1  = I2C.addInstance();
+const Power = scripting.addModule("/ti/drivers/Power");
+const RTOS  = scripting.addModule("/ti/drivers/RTOS");
+const SPI   = scripting.addModule("/ti/drivers/SPI", {}, false);
+const SPI1  = SPI.addInstance();
+
+/**
+ * Write custom configuration values to the imported modules.
+ */
+GPIO1.$hardware = system.deviceData.board.components.D1;
+GPIO1.$name     = "LED_out";
+
+GPIO2.$hardware        = system.deviceData.board.components.USR_SW1;
+GPIO2.$name            = "SW1";
+GPIO2.callbackFunction = "SW1Pressed";
+
+GPIO3.$name            = "SW2";
+GPIO3.$hardware        = system.deviceData.board.components.USR_SW2;
+GPIO3.callbackFunction = "SW2Pressed";
+
+I2C1.$name = "CONFIG_I2C_0";
+
+
+SPI1.$name               = "CONFIG_SPI_0";
+SPI1.spi.sclkPin.$assign = "boosterpack.7";
+
+/**
+ * Pinmux solution for unlocked pins/peripherals. This ensures that minor changes to the automatic solver in a future
+ * version of the tool will not impact the pinmux you originally saw.  These lines can be completely deleted in order to
+ * re-solve from scratch.
+ */
+GPIO1.gpioPin.$suggestSolution         = "expansion.87";
+GPIO2.gpioPin.$suggestSolution         = "expansion.82";
+GPIO3.gpioPin.$suggestSolution         = "expansion.84";
+I2C1.i2c.$suggestSolution              = "I2C1";
+I2C1.i2c.sdaPin.$suggestSolution       = "boosterpack2.40";
+I2C1.i2c.sclPin.$suggestSolution       = "boosterpack.37";
+RTOS.timer0.resource.$suggestSolution  = "Timer0";
+SPI1.spi.$suggestSolution              = "SSI2";
+SPI1.spi.misoPin.$suggestSolution      = "boosterpack.14";
+SPI1.spi.mosiPin.$suggestSolution      = "boosterpack.15";
+SPI1.spi.dmaRxChannel.$suggestSolution = "UDMA_CH12";
+SPI1.spi.dmaTxChannel.$suggestSolution = "UDMA_CH13";
