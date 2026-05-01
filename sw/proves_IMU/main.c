@@ -206,13 +206,13 @@ int main()
 
         // Open the UART interface (assuming your board file uses CONFIG_UART_0)
         uartHandle = UART_open(CONFIG_UART_0, &uartParams);
-        if (uartHandle == NULL)
+        /*if (uartHandle == NULL)
         {
             System_printf("UART did not open\n");
             System_flush();
             while (1)
                 ; // Trap to prevent a crash if UART fails
-        }
+        }*/
     }
     /*
 
@@ -295,23 +295,23 @@ void imuCommunicationTask(UArg arg0, UArg arg1)
             if (uart)
             {
                 float acc_angle_pitch = atan2((float)IMU.accX, (float)IMU.accZ) * (180.0f / 3.14159265f);
-                angle = alpha * (angle + ((float) IMU.gyZ) / GY_CTT * dt)
+                angle = alpha * (angle + ((float) IMU.gyY) / GY_CTT * dt)
                         + (1.0f - alpha) * acc_angle_pitch;
                 setpoint = (uint16_t) (abs(angle) * 22.75f);//* 45.5f); // = / 90.0f * 4095.0f
                                 //+ (1.0f - alpha) * ((float) IMU.accZ) / ACC_CTT;
                 //sprintf(txString, "ACCEL - X: %d, Y: %d, Z: %d ----- GYRO - X: %d, Y: %d, Z: %d\r\n",
                 //        IMU.accX, IMU.accY, IMU.accZ, IMU.gyX, IMU.gyY, IMU.gyZ);
-                sprintf(txString, "Angle = %f, enviem setpoint = %d \r\n",
+                /*sprintf(txString, "Angle = %f, enviem setpoint = %d \r\n",
                         angle, setpoint);
 
                 // Send the string over UART
-                UART_write(uartHandle, txString, strlen(txString));
+                UART_write(uartHandle, txString, strlen(txString));*/
             }
 
             // Also send to system console
-            System_printf(
-                    "ACCEL - X: %d, Y: %d, Z: %d ----- GYRO - X: %d, Y: %d, Z: %d \n",
-                    IMU.accX, IMU.accY, IMU.accZ, IMU.gyX, IMU.gyY, IMU.gyZ);
+            //System_printf(
+            //        "ACCEL - X: %d, Y: %d, Z: %d ----- GYRO - X: %d, Y: %d, Z: %d \n",
+            //        IMU.accX, IMU.accY, IMU.accZ, IMU.gyX, IMU.gyY, IMU.gyZ);
         }
 
         if (spi)
@@ -326,11 +326,11 @@ void imuCommunicationTask(UArg arg0, UArg arg1)
             GPIO_write(SS_R, 1);
             //Wait_cycles(100);
 
-            if (!success)
+            /*if (!success)
             {
                 sprintf(txString, "SPI Transfer hardware blocked!\r\n");
                 UART_write(uartHandle, txString, strlen(txString));
-            }
+            }*/
 
         }
 
