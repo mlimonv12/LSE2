@@ -68,10 +68,15 @@ extern "C" {
     void HwiTimer(UArg arg1);
     void SwiClock(UArg arg1);
     void TaskIMU(UArg arg1, UArg arg2);
-    void TaskConsole(UArg arg1, UArg arg2);
+    void TaskPID(UArg arg1, UArg arg2);
+    void TaskSPI_TX(UArg arg1, UArg arg2);
+    void uartRxCallback(UART_Handle handle, void *buf, size_t count);
+    void spiRxCallback(SPI_Handle handle, SPI_Transaction *transaction);
     void Send_data_idle_fxn(void);
     void Wait_cycles(uint32_t numberCycles);
 }
+
+typedef uint16_t ConsData;
 
 // Standard functions
 I2C_Handle init_I2C(void);
@@ -79,6 +84,16 @@ I2C_Handle init_I2C(void);
 /* Global variables */
 volatile uint16_t cnt_glb = 0;
 volatile uint8_t emer_glb = 0;
+
+float alpha = 0.04f;
+float dt = 0.1f;
+
+// RX Global Variables
+UART_Handle uartHandle_rx;
+SPI_Handle spiHandle_rx;
+ConsData uartRxBuf;
+ConsData spiRxBuf;
+SPI_Transaction spiRxTransaction;
 
 // volatile uint8_t emergency_glb = 0;
 // volatile uint16_t cnt_glb = 0;
@@ -93,8 +108,38 @@ int main()
 {
     /* Call driver init functions */
     Board_init();
-
     GPIO_init();
+
+    // Set Chip Select High initially (deselected)
+    GPIO_write(SS_R, 1);
+
+    // Initialize UART for Callback RX
+    UART_init();
+    UART_Params uartParams;
+    UART_Params_init(&uartParams);
+    uartParams.readMode = UART_MODE_CALLBACK;
+    uartParams.readCallback = uartRxCallback;
+    uartHandle_rx = UART_open(CONFIG_UART_0, &uartParams);
+    if (uartHandle_rx) {
+        UART_read(uartHandle_rx, &uartRxBuf, sizeof(ConsData));
+    }
+
+    // Initialize SPI Slave for Callback RX (assuming CONFIG_SPI_1)
+    SPI_init();
+    SPI_Params spiSlaveParams;
+    SPI_Params_init(&spiSlaveParams);
+    spiSlaveParams.mode = SPI_SLAVE;
+    spiSlaveParams.transferMode = SPI_MODE_CALLBACK;
+    spiSlaveParams.transferCallbackFxn = spiRxCallback;
+    spiSlaveParams.dataSize = 16;
+    // spiHandle_rx = SPI_open(CONFIG_SPI_1, &spiSlaveParams); 
+    // Uncomment above when CONFIG_SPI_1 is added to SysConfig
+    if (spiHandle_rx) {
+        spiRxTransaction.count = 1;
+        spiRxTransaction.rxBuf = &spiRxBuf;
+        spiRxTransaction.txBuf = NULL;
+        SPI_transfer(spiHandle_rx, &spiRxTransaction);
+    }
 
     System_printf("Inicialitzacio BIOS...\n");
     System_flush();
@@ -139,20 +184,117 @@ void TaskIMU(UArg arg1, UArg arg2)
         Task_exit();
     }
 
+    float angle = 0.0f;
+
     while(1)
     {
         Semaphore_pend(semaphore_imu, BIOS_WAIT_FOREVER);
         if (imu.read()) {
             IMU_data currentData = imu.getData();
-            Mailbox_post(mailbox_imu, &currentData, BIOS_NO_WAIT);
+            
+            float acc_angle_pitch = atan2((float)currentData.accX, (float)currentData.accZ) * (180.0f / 3.14159265f);
+            angle = alpha * (angle + ((float)currentData.gyY) / GY_CTT * dt) + (1.0f - alpha) * acc_angle_pitch;
+
+            Mailbox_post(mailbox_imu, &angle, BIOS_NO_WAIT);
             Event_post(event_data, FLAG_IMU);
         }
     }
 }
 
-void TaskConsole(UArg arg1, UArg arg2)
+void uartRxCallback(UART_Handle handle, void *buf, size_t count)
 {
+    ConsData data = *(ConsData*)buf;
+    Mailbox_post(mailbox_cons, &data, BIOS_NO_WAIT);
+    Event_post(event_data, FLAG_CONS);
+    
+    // Re-prime UART to listen for the next transmission
+    UART_read(handle, buf, count);
+}
 
+void spiRxCallback(SPI_Handle handle, SPI_Transaction *transaction)
+{
+    if (transaction->status == SPI_TRANSFER_COMPLETED) {
+        ConsData data = *(ConsData*)transaction->rxBuf;
+        Mailbox_post(mailbox_cons, &data, BIOS_NO_WAIT);
+        Event_post(event_data, FLAG_CONS);
+    }
+    
+    // Re-prime SPI to listen for the next transmission
+    SPI_transfer(handle, transaction);
+}
+
+void TaskPID(UArg arg1, UArg arg2)
+{
+    ConsData currentCons = 130; // Default target mapped from old.c.bak
+    float currentAngle = 0.0f;
+    
+    // PID State
+    float Kp = 22.75f;
+    float Ki = 0.0f;
+    float Kd = 0.0f;
+    float integral = 0.0f;
+    float last_error = 0.0f;
+
+    while(1)
+    {
+        UInt events = Event_pend(event_data, Event_Id_NONE, FLAG_IMU | FLAG_CONS, BIOS_WAIT_FOREVER);
+
+        if (events & FLAG_CONS) {
+            // Update target from mailbox
+            Mailbox_pend(mailbox_cons, &currentCons, BIOS_NO_WAIT);
+        }
+
+        if (events & FLAG_IMU) {
+            // Read IMU angle from mailbox
+            if (Mailbox_pend(mailbox_imu, &currentAngle, BIOS_NO_WAIT)) {
+                
+                float error = (float)currentCons - currentAngle;
+                integral += error * dt;
+                float derivative = (error - last_error) / dt;
+                
+                float output = (Kp * error) + (Ki * integral) + (Kd * derivative);
+                last_error = error;
+                
+                ConsData pidOutput = (ConsData)fabs(output); 
+                
+                // Send computed value to SPI TX task
+                Mailbox_post(mailbox_pid, &pidOutput, BIOS_NO_WAIT);
+            }
+        }
+    }
+}
+
+void TaskSPI_TX(UArg arg1, UArg arg2)
+{
+    ConsData pidInput;
+    uint32_t spiReceive;
+    
+    SPI_init();
+    SPI_Params spiParams;
+    SPI_Params_init(&spiParams);
+    spiParams.bitRate = 100000;
+    spiParams.dataSize = 16;
+    
+    SPI_Handle spiHandle = SPI_open(CONFIG_SPI_0, &spiParams);
+    if (!spiHandle) {
+        System_printf("Error: SPI Init Failed\n");
+        System_flush();
+        Task_exit();
+    }
+
+    SPI_Transaction transaction;
+    transaction.count = 1;
+    transaction.txBuf = (void*)&pidInput;
+    transaction.rxBuf = (void*)&spiReceive;
+
+    while(1)
+    {
+        Mailbox_pend(mailbox_pid, &pidInput, BIOS_WAIT_FOREVER);
+
+        GPIO_write(SS_R, 0); // Manual CS Low
+        SPI_transfer(spiHandle, &transaction);
+        GPIO_write(SS_R, 1); // Manual CS High
+    }
 }
 
 void Send_data_idle_fxn(void)
