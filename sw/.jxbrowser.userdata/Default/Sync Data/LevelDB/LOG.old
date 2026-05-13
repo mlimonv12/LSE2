@@ -1,3 +1,2 @@
-2026/04/25-12:23:49.629 50fc Reusing MANIFEST C:\Users\PC\Desktop\LSE\LSE2\sw\.jxbrowser.userdata\Default\Sync Data\LevelDB/MANIFEST-000001
-2026/04/25-12:23:49.633 50fc Recovering log #3
-2026/04/25-12:23:49.633 50fc Reusing old log C:\Users\PC\Desktop\LSE\LSE2\sw\.jxbrowser.userdata\Default\Sync Data\LevelDB/000003.log 
+2026/05/06-15:57:00.795 446c Creating DB C:\Users\adria\Documents\LSE2\project\sw\.jxbrowser.userdata\Default\Sync Data\LevelDB since it was missing.
+2026/05/06-15:57:00.822 446c Reusing MANIFEST C:\Users\adria\Documents\LSE2\project\sw\.jxbrowser.userdata\Default\Sync Data\LevelDB/MANIFEST-000001

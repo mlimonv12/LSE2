@@ -1,3 +1,4 @@
-2026/04/25-12:23:49.746 4624 Reusing MANIFEST C:\Users\PC\Desktop\LSE\LSE2\sw\.jxbrowser.userdata\Default\shared_proto_db/MANIFEST-000001
-2026/04/25-12:23:49.762 4624 Recovering log #3
-2026/04/25-12:23:49.763 4624 Reusing old log C:\Users\PC\Desktop\LSE\LSE2\sw\.jxbrowser.userdata\Default\shared_proto_db/000003.log 
+2026/05/06-15:57:00.874 44c8 Creating DB C:\Users\adria\Documents\LSE2\project\sw\.jxbrowser.userdata\Default\shared_proto_db since it was missing.
+2026/05/06-15:57:00.882 44c8 Reusing MANIFEST C:\Users\adria\Documents\LSE2\project\sw\.jxbrowser.userdata\Default\shared_proto_db/MANIFEST-000001
+2026/05/06-15:57:00.907 44c8 Recovering log #3
+2026/05/06-15:57:00.907 44c8 Reusing old log C:\Users\adria\Documents\LSE2\project\sw\.jxbrowser.userdata\Default\shared_proto_db/000003.log 

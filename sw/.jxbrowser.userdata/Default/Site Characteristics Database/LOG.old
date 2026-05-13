@@ -1,3 +1,4 @@
-2026/04/25-12:23:49.627 4aa4 Reusing MANIFEST C:\Users\PC\Desktop\LSE\LSE2\sw\.jxbrowser.userdata\Default\Site Characteristics Database/MANIFEST-000001
-2026/04/25-12:23:49.648 4aa4 Recovering log #3
-2026/04/25-12:23:49.649 4aa4 Reusing old log C:\Users\PC\Desktop\LSE\LSE2\sw\.jxbrowser.userdata\Default\Site Characteristics Database/000003.log 
+2026/05/06-15:57:00.795 45f0 Creating DB C:\Users\adria\Documents\LSE2\project\sw\.jxbrowser.userdata\Default\Site Characteristics Database since it was missing.
+2026/05/06-15:57:00.820 45f0 Reusing MANIFEST C:\Users\adria\Documents\LSE2\project\sw\.jxbrowser.userdata\Default\Site Characteristics Database/MANIFEST-000001
+2026/05/06-15:57:00.838 45f0 Recovering log #3
+2026/05/06-15:57:00.838 45f0 Reusing old log C:\Users\adria\Documents\LSE2\project\sw\.jxbrowser.userdata\Default\Site Characteristics Database/000003.log 
