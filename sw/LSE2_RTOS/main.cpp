@@ -43,6 +43,7 @@
 #include <ti/sysbios/knl/Mailbox.h>
 #include <ti/sysbios/knl/Queue.h>
 #include <ti/sysbios/knl/Event.h>
+#include <ti/sysbios/knl/Task.h>
 
 /* TI Drivers */
 #include <ti/drivers/GPIO.h>
@@ -94,6 +95,10 @@ SPI_Handle spiHandle_rx;
 ConsData uartRxBuf;
 ConsData spiRxBuf;
 SPI_Transaction spiRxTransaction;
+
+// Master Handles
+I2C_Handle i2cHandle_master;
+SPI_Handle spiHandle_master;
 
 // volatile uint8_t emergency_glb = 0;
 // volatile uint16_t cnt_glb = 0;
@@ -172,17 +177,24 @@ void TaskIMU(UArg arg1, UArg arg2)
     if (i2cHandle == NULL) {
         System_printf("Error: I2C Init Failed\n");
         System_flush();
-        Task_exit();
+        Task_sleep(100);
+        //Task_exit();
     }
+
+    System_printf("I2C initialised");
+    System_flush();
 
     IMU imu(i2cHandle);
 
     // Initialization
-    if (!imu.init()) {
-        System_printf("Warning: IMU Init Failed on startup\n");
-        System_flush();
-        Task_exit();
-    }
+    //while (!imu.init()) {
+    //    System_printf("Warning: IMU Init Failed on startup, retrying...\n");
+    //    System_flush();
+    //    Task_sleep(100);
+    //}
+
+    System_printf("IMU initialised");
+    System_flush();
 
     float angle = 0.0f;
 
@@ -192,8 +204,11 @@ void TaskIMU(UArg arg1, UArg arg2)
         if (imu.read()) {
             IMU_data currentData = imu.getData();
             
-            float acc_angle_pitch = atan2((float)currentData.accX, (float)currentData.accZ) * (180.0f / 3.14159265f);
-            angle = alpha * (angle + ((float)currentData.gyY) / GY_CTT * dt) + (1.0f - alpha) * acc_angle_pitch;
+            float acc_angle = atan2f((float)currentData.accY, (float)currentData.accZ) * (180.0f / 3.14159265f);
+            angle = alpha * (angle + ((float)currentData.gyX) / GY_CTT * dt) + (1.0f - alpha) * acc_angle;
+
+            System_printf("%d", angle);
+            System_flush();
 
             Mailbox_post(mailbox_imu, &angle, BIOS_NO_WAIT);
             Event_post(event_data, FLAG_IMU);
@@ -225,7 +240,7 @@ void spiRxCallback(SPI_Handle handle, SPI_Transaction *transaction)
 
 void TaskPID(UArg arg1, UArg arg2)
 {
-    ConsData currentCons = 130; // Default target mapped from old.c.bak
+    ConsData currentCons = 130;
     float currentAngle = 0.0f;
     
     // PID State
@@ -255,7 +270,7 @@ void TaskPID(UArg arg1, UArg arg2)
                 float output = (Kp * error) + (Ki * integral) + (Kd * derivative);
                 last_error = error;
                 
-                ConsData pidOutput = (ConsData)fabs(output); 
+                ConsData pidOutput = (ConsData)fabsf(output); 
                 
                 // Send computed value to SPI TX task
                 Mailbox_post(mailbox_pid, &pidOutput, BIOS_NO_WAIT);
@@ -282,7 +297,7 @@ void TaskSPI_TX(UArg arg1, UArg arg2)
         Task_exit();
     }
 
-    SPI_Transaction transaction;
+    SPI_Transaction transaction = {0}; // MUST 0-initialize to prevent driver crash
     transaction.count = 1;
     transaction.txBuf = (void*)&pidInput;
     transaction.rxBuf = (void*)&spiReceive;
@@ -317,7 +332,7 @@ I2C_Handle init_I2C(void)
     I2C_init();
 
     // Configure params
-    I2C_Params i2cParams;
+    static I2C_Params i2cParams;
     I2C_Params_init(&i2cParams);
     i2cParams.bitRate = I2C_400kHz;
 
