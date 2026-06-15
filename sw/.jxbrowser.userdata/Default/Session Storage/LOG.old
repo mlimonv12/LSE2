@@ -1,4 +1,3 @@
-2026/05/06-15:57:13.474 44f8 Creating DB C:\Users\adria\Documents\LSE2\project\sw\.jxbrowser.userdata\Default\Session Storage since it was missing.
-2026/05/06-15:57:13.512 44f8 Reusing MANIFEST C:\Users\adria\Documents\LSE2\project\sw\.jxbrowser.userdata\Default\Session Storage/MANIFEST-000001
-2026/05/06-15:57:13.528 44f8 Recovering log #3
-2026/05/06-15:57:13.530 44f8 Reusing old log C:\Users\adria\Documents\LSE2\project\sw\.jxbrowser.userdata\Default\Session Storage/000003.log 
+2026/05/27-19:06:52.014 cbc Reusing MANIFEST C:\Users\PC\Desktop\LSE\LSE2\sw\.jxbrowser.userdata\Default\Session Storage/MANIFEST-000001
+2026/05/27-19:06:52.027 cbc Recovering log #3
+2026/05/27-19:06:52.029 cbc Reusing old log C:\Users\PC\Desktop\LSE\LSE2\sw\.jxbrowser.userdata\Default\Session Storage/000003.log 

@@ -1,38 +1,8 @@
-/*
- * Copyright (c) 2015-2019, Texas Instruments Incorporated
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * *  Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * *  Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * *  Neither the name of Texas Instruments Incorporated nor the names of
- *    its contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 /* XDC Module Headers */
 #include <xdc/std.h>
 #include <xdc/runtime/System.h>
+#include <xdc/runtime/Timestamp.h>
+#include <xdc/runtime/Types.h>
 #include <xdc/cfg/global.h>
 
 /* BIOS Module Headers */
@@ -66,18 +36,20 @@
 /* Prototypes */
 // Threads
 extern "C" {
-    void HwiTimer(UArg arg1);
-    void SwiClock(UArg arg1);
-    void TaskIMU(UArg arg1, UArg arg2);
-    void TaskPID(UArg arg1, UArg arg2);
-    void TaskSPI_TX(UArg arg1, UArg arg2);
-    void uartRxCallback(UART_Handle handle, void *buf, size_t count);
-    void spiRxCallback(SPI_Handle handle, SPI_Transaction *transaction);
-    void Send_data_idle_fxn(void);
-    void Wait_cycles(uint32_t numberCycles);
+//    void HwiTimer(UArg arg1);
+void SwiClock(UArg arg1);
+void TaskIMU(UArg arg1, UArg arg2);
+void TaskPID(UArg arg1, UArg arg2);
+void TaskSPI_TX(UArg arg1, UArg arg2);
+void uartRxCallback(UART_Handle handle, void *buf, size_t count);
+void spiRxCallback(SPI_Handle handle, SPI_Transaction *transaction);
+void Send_data_idle_fxn(void);
+void Wait_cycles(uint32_t numberCycles);
+float IMU2angle(IMU_data IMUdata, float prevAngle, float dt);
+int16_t constrainSpeed(int16_t inputVal);
 }
 
-typedef uint16_t ConsData;
+typedef int16_t ConsData;
 
 // Standard functions
 I2C_Handle init_I2C(void);
@@ -86,8 +58,10 @@ I2C_Handle init_I2C(void);
 volatile uint16_t cnt_glb = 0;
 volatile uint8_t emer_glb = 0;
 
-float alpha = 0.04f;
-float dt = 0.1f;
+char uartTxBuf[128];
+
+float alpha = 0.02f;
+uint16_t setpoint = 130;
 
 // RX Global Variables
 UART_Handle uartHandle_rx;
@@ -95,6 +69,13 @@ SPI_Handle spiHandle_rx;
 ConsData uartRxBuf;
 ConsData spiRxBuf;
 SPI_Transaction spiRxTransaction;
+
+// Variables I2C
+I2C_Handle i2cHandle;
+IMU imu;
+/*uint8_t txBuffer[1]; // Buffer for the register address
+ uint8_t rxBuffer[14]; // Buffer for the incoming IMU data
+ I2C_Transaction i2cTransaction;*/
 
 // Master Handles
 I2C_Handle i2cHandle_master;
@@ -125,11 +106,13 @@ int main()
     uartParams.readMode = UART_MODE_CALLBACK;
     uartParams.readCallback = uartRxCallback;
     uartHandle_rx = UART_open(CONFIG_UART_0, &uartParams);
-    if (uartHandle_rx) {
+    if (uartHandle_rx)
+    {
         UART_read(uartHandle_rx, &uartRxBuf, sizeof(ConsData));
     }
 
     // Initialize SPI Slave for Callback RX (assuming CONFIG_SPI_1)
+
     SPI_init();
     SPI_Params spiSlaveParams;
     SPI_Params_init(&spiSlaveParams);
@@ -137,14 +120,25 @@ int main()
     spiSlaveParams.transferMode = SPI_MODE_CALLBACK;
     spiSlaveParams.transferCallbackFxn = spiRxCallback;
     spiSlaveParams.dataSize = 16;
-    // spiHandle_rx = SPI_open(CONFIG_SPI_1, &spiSlaveParams); 
+    int16_t initialSpeed = 0;
+    //spiHandle_rx = SPI_open(CONFIG_SPI_0, &spiSlaveParams);
     // Uncomment above when CONFIG_SPI_1 is added to SysConfig
-    if (spiHandle_rx) {
+    if (spiHandle_rx)
+    {
         spiRxTransaction.count = 1;
         spiRxTransaction.rxBuf = &spiRxBuf;
-        spiRxTransaction.txBuf = NULL;
+        spiRxTransaction.txBuf = &initialSpeed;
         SPI_transfer(spiHandle_rx, &spiRxTransaction);
     }
+
+    // Close SPI again
+
+    //spiHandle_rx = SPI_close(CONFIG_SPI_0, &spiSlaveParams);
+
+    //Task_sleep(10);
+
+    //SPI_transfer(spiHandle_rx, &spiRxTransaction);
+    //GPIO_write(SS_R, 1); // Manual CS High
 
     System_printf("Inicialitzacio BIOS...\n");
     System_flush();
@@ -154,126 +148,245 @@ int main()
      *  and start the scheduler and kick BIOS into gear.  But, this program
      *  is a simple sanity test and calls BIOS_exit() instead.
      */
-    BIOS_start();  /* terminates program and dumps SysMin output */
-    return(0);
+    BIOS_start(); /* terminates program and dumps SysMin output */
+    return (0);
 }
 
 /* Threads */
-void HwiTimer(UArg arg1) {
-    GPIO_toggle(CONFIG_GPIO_0);
-}
+/*void HwiTimer(UArg arg1) {
+ GPIO_toggle(CONFIG_GPIO_0);
+ }*/
 
 void SwiClock(UArg arg1)
 {
     // Clock_clearInt()
+    //System_printf("Clock int called \n");
+    //System_flush();
     Semaphore_post(semaphore_imu); // Cada X temps, llegim IMU
 }
 
 void TaskIMU(UArg arg1, UArg arg2)
 {
-    // Declarations
-    I2C_Handle i2cHandle = init_I2C();
 
-    if (i2cHandle == NULL) {
+    i2cHandle = init_I2C();
+
+    if (i2cHandle == NULL)
+    {
         System_printf("Error: I2C Init Failed\n");
         System_flush();
         Task_sleep(100);
         //Task_exit();
     }
 
-    System_printf("I2C initialised");
+    System_printf("About to initialise IMU \n");
     System_flush();
 
-    IMU imu(i2cHandle);
+    if (!imu.init(i2cHandle))
+    {
+        System_printf("IMU mal inicialitzada \n");
+    }
 
-    // Initialization
-    //while (!imu.init()) {
-    //    System_printf("Warning: IMU Init Failed on startup, retrying...\n");
-    //    System_flush();
-    //    Task_sleep(100);
-    //}
-
-    System_printf("IMU initialised");
+    System_printf("I2C initialised \n");
     System_flush();
 
+    float offset = 0.0f;
     float angle = 0.0f;
+    float currentAngle = 0.0f;
+    int posNew = 0, posOldest = 1;
+    int N = 40;
+    //int N = 300;
+    float angles[N];
+    // Inicialitzacio timestamp
+    float dt = 0.0f;
+    Types_FreqHz freq;
+    Timestamp_getFreq(&freq);
+    float cpuFreq = (float) freq.lo;
+    uint32_t oldTimeMeas = Timestamp_get32();
 
-    while(1)
+    IMU_data currentData;
+
+    System_printf("Abans de restAngle \n");
+    System_flush();
+
+    // Calibracio IMU
+    float restAngle = imu.calibrate(1000) * (180.0f / 3.14159265f) - 3.0f;
+    //restAngle = 0.0f;
+
+    System_printf("Despres de restAngle \n");
+    System_flush();
+
+    // Inicialitzacio vector promig
+    for (int i = 0; i < N; i++)
+    {
+        uint32_t newTimeMeas = Timestamp_get32();
+        uint32_t dTicks = newTimeMeas - oldTimeMeas;
+        dt = (float) dTicks / cpuFreq;
+        oldTimeMeas = newTimeMeas;
+
+        currentData = imu.getData();
+        angle = IMU2angle(currentData, angle, dt) + restAngle;
+        angles[i] = angle;
+    }
+
+    System_printf("IMU calibrated \n");
+    System_flush();
+
+    while (1)
     {
         Semaphore_pend(semaphore_imu, BIOS_WAIT_FOREVER);
-        if (imu.read()) {
-            IMU_data currentData = imu.getData();
-            
-            float acc_angle = atan2f((float)currentData.accY, (float)currentData.accZ) * (180.0f / 3.14159265f);
-            angle = alpha * (angle + ((float)currentData.gyX) / GY_CTT * dt) + (1.0f - alpha) * acc_angle;
+        //if (imu.read(i2cTransaction))
+        if (imu.read())
+        {
+            //System_printf("YES\n");
+            //System_flush();
 
-            System_printf("%d", angle);
-            System_flush();
+            uint32_t newTimeMeas = Timestamp_get32();
+            uint32_t dTicks = newTimeMeas - oldTimeMeas;
+            dt = (float) dTicks / cpuFreq;
+            oldTimeMeas = newTimeMeas;
 
+            currentData = imu.getData();
+
+            angles[posNew] = IMU2angle(currentData, angle, dt) + restAngle;
+
+            angle += (angles[posNew] - angles[posOldest]) / ((float) N);
+
+            posNew = posOldest;
+            posOldest++;
+            if (posOldest >= N)
+                posOldest -= N;
+
+            /*System_printf(
+             "ACCEL - X: %d, Y: %d, Z: %d ----- GYRO - X: %d, Y: %d, Z: %d\r\n",
+             currentData.accX, currentData.accY, currentData.accZ,
+             currentData.gyX, currentData.gyY, currentData.gyZ);*/
+            //System_printf("Angle = %f | ", angle);
+            //System_flush();
+            //snprintf(uartTxBuf, sizeof(uartTxBuf), "%f | ", angle);
+            //UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
+
+            snprintf(uartTxBuf, sizeof(uartTxBuf), "angle = %.2f | ",
+                     angle, currentData.accY);
+
+            UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
+
+            // CODI BO
             Mailbox_post(mailbox_imu, &angle, BIOS_NO_WAIT);
             Event_post(event_data, FLAG_IMU);
+        }
+        else
+        {
+            //System_printf("IMU READING FAILED");
+            //System_flush();
         }
     }
 }
 
 void uartRxCallback(UART_Handle handle, void *buf, size_t count)
 {
-    ConsData data = *(ConsData*)buf;
+    ConsData data = *(ConsData*) buf;
     Mailbox_post(mailbox_cons, &data, BIOS_NO_WAIT);
     Event_post(event_data, FLAG_CONS);
-    
+
     // Re-prime UART to listen for the next transmission
     UART_read(handle, buf, count);
 }
 
 void spiRxCallback(SPI_Handle handle, SPI_Transaction *transaction)
 {
-    if (transaction->status == SPI_TRANSFER_COMPLETED) {
-        ConsData data = *(ConsData*)transaction->rxBuf;
+    if (transaction->status == SPI_TRANSFER_COMPLETED)
+    {
+        ConsData data = *(ConsData*) transaction->rxBuf;
         Mailbox_post(mailbox_cons, &data, BIOS_NO_WAIT);
         Event_post(event_data, FLAG_CONS);
     }
-    
+
     // Re-prime SPI to listen for the next transmission
     SPI_transfer(handle, transaction);
 }
 
 void TaskPID(UArg arg1, UArg arg2)
 {
-    ConsData currentCons = 130;
+    float currentCons = 0.0f;
     float currentAngle = 0.0f;
-    
-    // PID State
-    float Kp = 22.75f;
+
+    System_printf("Entrem a PID \n");
+    System_flush();
+
+    // Inicialitzacio timestamp
+    float dt = 0.0f;
+    Types_FreqHz freq;
+    Timestamp_getFreq(&freq);
+    float cpuFreq = (float) freq.lo;
+    uint32_t oldTimeMeas = Timestamp_get32();
+
+    // Constants PID
+    // decent, pero amb offset:
+    /*float Kp = 30.0f;
     float Ki = 0.0f;
+    float Kd = 0.05f;*/
+
+    float Kp = 20.0f;
+    float Ki = 0.0f; // * erracum * dt
     float Kd = 0.0f;
+    /*float Kp = 0.0f;
+    float Ki = 0.0f;
+    float Kd = 0.0f;*/
     float integral = 0.0f;
+    float intMax = 50.0f;
+    float intMin = -intMax;
     float last_error = 0.0f;
 
-    while(1)
+    while (1)
     {
-        UInt events = Event_pend(event_data, Event_Id_NONE, FLAG_IMU | FLAG_CONS, BIOS_WAIT_FOREVER);
+        UInt events = Event_pend(event_data, Event_Id_NONE,
+        FLAG_IMU | FLAG_CONS,
+                                 BIOS_WAIT_FOREVER);
 
-        if (events & FLAG_CONS) {
+        if (events & FLAG_CONS)
+        {
             // Update target from mailbox
             Mailbox_pend(mailbox_cons, &currentCons, BIOS_NO_WAIT);
         }
 
-        if (events & FLAG_IMU) {
+        if (events & FLAG_IMU)
+        {
             // Read IMU angle from mailbox
-            if (Mailbox_pend(mailbox_imu, &currentAngle, BIOS_NO_WAIT)) {
-                
-                float error = (float)currentCons - currentAngle;
+            if (Mailbox_pend(mailbox_imu, &currentAngle, BIOS_NO_WAIT))
+            {
+
+                /*System_printf("Calculem PID \n");
+                 System_flush();*/
+
+                // Cal calcular dt
+                uint32_t newTimeMeas = Timestamp_get32();
+                uint32_t dTicks = newTimeMeas - oldTimeMeas;
+                dt = (float) dTicks / cpuFreq;
+                oldTimeMeas = newTimeMeas;
+
+                float error = currentCons - currentAngle;
                 integral += error * dt;
+                if (integral > intMax) integral = intMax;
+                if (integral < intMin) integral = intMin;
+
+                snprintf(uartTxBuf, sizeof(uartTxBuf), "intTerm = %.3f | ", integral);
+
+                UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
+
                 float derivative = (error - last_error) / dt;
-                
-                float output = (Kp * error) + (Ki * integral) + (Kd * derivative);
+
+                int16_t output = (int16_t) ((Kp * error) + (Ki * integral)
+                        + (Kd * derivative));
                 last_error = error;
-                
-                ConsData pidOutput = (ConsData)fabsf(output); 
-                
+
+                //ConsData pidOutput = (ConsData) fabsf(output);
+                //pidOutput = 1000;
+
+                /*System_printf("PID computed: output = %d, dt = %f, Angle = %f \n", output, dt, currentAngle);
+                 System_flush();*/
+
                 // Send computed value to SPI TX task
-                Mailbox_post(mailbox_pid, &pidOutput, BIOS_NO_WAIT);
+                Mailbox_post(mailbox_pid, &output, BIOS_NO_WAIT);
             }
         }
     }
@@ -281,31 +394,67 @@ void TaskPID(UArg arg1, UArg arg2)
 
 void TaskSPI_TX(UArg arg1, UArg arg2)
 {
-    ConsData pidInput;
+    ConsData sendOutput;
+    ConsData pidOutput;
     uint32_t spiReceive;
-    
+
+    // Condicionament variable
+    int16_t baseSpeedRight = 2400;
+    int16_t baseSpeedLeft = 2650;
+
     SPI_init();
     SPI_Params spiParams;
     SPI_Params_init(&spiParams);
     spiParams.bitRate = 100000;
     spiParams.dataSize = 16;
-    
+
     SPI_Handle spiHandle = SPI_open(CONFIG_SPI_0, &spiParams);
-    if (!spiHandle) {
+    if (!spiHandle)
+    {
         System_printf("Error: SPI Init Failed\n");
         System_flush();
         Task_exit();
     }
 
-    SPI_Transaction transaction = {0}; // MUST 0-initialize to prevent driver crash
+    SPI_Transaction transaction = { 0 }; // MUST 0-initialize to prevent driver crash
     transaction.count = 1;
-    transaction.txBuf = (void*)&pidInput;
-    transaction.rxBuf = (void*)&spiReceive;
+    transaction.txBuf = (void*) &sendOutput;
+    transaction.rxBuf = (void*) &spiReceive;
 
-    while(1)
+    sendOutput = 0; // Apaguem motors inicialment per permetre configuracio IMU
+    GPIO_write(SS_L, 0); // Manual CS Low
+    GPIO_write(SS_R, 0); // Manual CS Low
+    SPI_transfer(spiHandle, &transaction);
+    GPIO_write(SS_L, 1); // Manual CS High
+    GPIO_write(SS_R, 1); // Manual CS High
+
+    System_printf("SPI done \n");
+    System_flush();
+
+    while (1)
     {
-        Mailbox_pend(mailbox_pid, &pidInput, BIOS_WAIT_FOREVER);
+        Mailbox_pend(mailbox_pid, &pidOutput, BIOS_WAIT_FOREVER);
+        //pidOutput = 0;
 
+        /*System_printf("L: %d | R: %d | PID: %d \n",
+        constrainSpeed(baseSpeed + pidOutput),
+        constrainSpeed(baseSpeed - pidOutput), pidOutput);
+        System_flush();*/
+
+        snprintf(uartTxBuf, sizeof(uartTxBuf), "PID: %d \n", pidOutput);
+
+        UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
+
+        //pidOutput = 0;
+
+        sendOutput = constrainSpeed(baseSpeedLeft + pidOutput);
+        GPIO_write(SS_L, 0); // Manual CS Low
+        SPI_transfer(spiHandle, &transaction);
+        GPIO_write(SS_L, 1); // Manual CS High
+
+        //Task_sleep(10);
+
+        sendOutput = constrainSpeed(baseSpeedRight - pidOutput);
         GPIO_write(SS_R, 0); // Manual CS Low
         SPI_transfer(spiHandle, &transaction);
         GPIO_write(SS_R, 1); // Manual CS High
@@ -322,22 +471,42 @@ void Send_data_idle_fxn(void)
 void Wait_cycles(uint32_t numberCycles)
 {
     volatile uint32_t i = 0; //variable comptador
-    while (i < numberCycles) {i ++;} //fem bucle buit
+    while (i < numberCycles)
+    {
+        i++;
+    } //fem bucle buit
 }
-
 
 /* Standard functions */
 I2C_Handle init_I2C(void)
 {
     I2C_init();
 
-    // Configure params
     static I2C_Params i2cParams;
     I2C_Params_init(&i2cParams);
     i2cParams.bitRate = I2C_400kHz;
 
-    // Open interface and get handle
     I2C_Handle i2cHandle = I2C_open(CONFIG_I2C_0, &i2cParams);
-
     return i2cHandle;
+}
+
+float IMU2angle(IMU_data IMUdata, float prevAngle, float dt)
+{
+    float acc_angle = atan2f((float) IMUdata.accY, (float) IMUdata.accZ)
+            * (180.0f / 3.14159265f);
+    float newAngle = alpha * (prevAngle + ((float) IMUdata.gyX) / GY_CTT * dt)
+            + (1.0f - alpha) * acc_angle;
+    return newAngle;
+}
+
+int16_t constrainSpeed(int16_t inputVal)
+{
+    int16_t minVal = 1;
+    int16_t maxVal = 3800;
+
+    if (inputVal < minVal)
+        return minVal;
+    if (inputVal > maxVal)
+        return maxVal;
+    return inputVal;
 }

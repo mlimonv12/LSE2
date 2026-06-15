@@ -31,12 +31,24 @@ typedef struct {
     int16_t gyX, gyY, gyZ;
 } IMU_data;
 
+typedef struct {
+    int32_t accX = 0, accY = 0, accZ = 0;
+    //int16_t temperature;
+    int32_t gyX = 0, gyY = 0, gyZ = 0;
+} IMU_offset;
+
 class IMU {
 public:
-    IMU(I2C_Handle handle);
+    IMU();
 
     // Initializes the IMU (wakes it up and sets scaling)
-    bool init();
+    bool init(I2C_Handle i2cHandle);
+
+    // Checks whether the swing is leaning right or left
+    //bool checkRight();
+
+    // Calibrates IMU
+    float calibrate(int N);
 
     // Reads the latest data from the IMU
     bool read();
@@ -48,7 +60,10 @@ private:
     I2C_Handle i2cHandle;
     I2C_Transaction i2cTransaction;
 
+
     IMU_data data;
+    IMU_offset ofs;
+    float restAngle;
 
     uint8_t txBuffer[1];
     uint8_t rxBuffer[14];

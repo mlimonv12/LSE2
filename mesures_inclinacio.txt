@@ -1,0 +1,2 @@
+vertical: 8
+horz: 19,5

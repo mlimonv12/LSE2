@@ -21,6 +21,7 @@
 #include <ti/drivers/I2C.h>
 #include <ti/drivers/SPI.h>
 #include <ti/drivers/UART.h>
+#include <xdc/runtime/Timestamp.h>
 
 /* Standard C/C++ */
 #include <stdio.h>
@@ -62,7 +63,7 @@ float alpha = 0.04f;
 float angle = 0.0f;
 float dt = 0.1f;
 float t_prev = 0;
-uint16_t setpoint = 130;
+int16_t setpoint = 130;
 
 // -----------------------------------------
 int i2c = 1;
@@ -182,7 +183,7 @@ int main()
         SPI_init();
         SPI_Params_init(&spiParams);
         spiParams.bitRate = 100000;
-        spiParams.dataSize = 16; // El setpoint es un uint32_t
+        spiParams.dataSize = 16; // El setpoint es un uint16_t
         spiHandle = SPI_open(CONFIG_SPI_0, &spiParams);
         if (!spiHandle)
         {
@@ -294,18 +295,18 @@ void imuCommunicationTask(UArg arg0, UArg arg1)
 
             if (uart)
             {
-                float acc_angle_pitch = atan2((float)IMU.accX, (float)IMU.accZ) * (180.0f / 3.14159265f);
-                angle = alpha * (angle + ((float) IMU.gyY) / GY_CTT * dt)
-                        + (1.0f - alpha) * acc_angle_pitch;
-                setpoint = (uint16_t) (abs(angle) * 22.75f);//* 45.5f); // = / 90.0f * 4095.0f
+                float acc_angle = atan2((float)IMU.accY, (float)IMU.accZ) * (180.0f / 3.14159265f);
+                angle = alpha * (angle + ((float) IMU.gyX) / GY_CTT * dt)
+                        + (1.0f - alpha) * acc_angle;
+                setpoint = 1000; // (uint16_t) (abs(angle) * 90.0f);//* 45.5f); // = / 90.0f * 4095.0f
                                 //+ (1.0f - alpha) * ((float) IMU.accZ) / ACC_CTT;
                 //sprintf(txString, "ACCEL - X: %d, Y: %d, Z: %d ----- GYRO - X: %d, Y: %d, Z: %d\r\n",
                 //        IMU.accX, IMU.accY, IMU.accZ, IMU.gyX, IMU.gyY, IMU.gyZ);
-                /*sprintf(txString, "Angle = %f, enviem setpoint = %d \r\n",
+                sprintf(txString, "Angle = %f, enviem setpoint = %d \r\n",
                         angle, setpoint);
 
                 // Send the string over UART
-                UART_write(uartHandle, txString, strlen(txString));*/
+                UART_write(uartHandle, txString, strlen(txString));
             }
 
             // Also send to system console
@@ -317,12 +318,21 @@ void imuCommunicationTask(UArg arg0, UArg arg1)
         if (spi)
         {
             // Calcul bytes
-            //setpoint = 60000; // (uint16_t) (((angle + 3.0f) / 5.0f) * 65536.0f);
+            setpoint = 0; // (uint16_t) (((angle + 3.0f) / 5.0f) * 65536.0f);
 
+            /*GPIO_write(SS_R, 0);
+            //Wait_cycles(100);
+            bool success = SPI_transfer(spiHandle, &spiTransaction);
+            GPIO_write(SS_R, 1);*/
+
+            //Wait_cycles(100);
+
+            GPIO_write(SS_L, 0);
             GPIO_write(SS_R, 0);
             //Wait_cycles(100);
             bool success = SPI_transfer(spiHandle, &spiTransaction);
             //Wait_cycles(100);
+            GPIO_write(SS_L, 1);
             GPIO_write(SS_R, 1);
             //Wait_cycles(100);
 
