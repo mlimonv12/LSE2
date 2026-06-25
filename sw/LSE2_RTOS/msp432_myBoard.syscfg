@@ -13,6 +13,9 @@ const GPIO1 = GPIO.addInstance();
 const GPIO2 = GPIO.addInstance();
 const GPIO3 = GPIO.addInstance();
 const GPIO4 = GPIO.addInstance();
+const GPIO5 = GPIO.addInstance();
+const GPIO6 = GPIO.addInstance();
+const GPIO7 = GPIO.addInstance();
 const I2C   = scripting.addModule("/ti/drivers/I2C", {}, false);
 const I2C1  = I2C.addInstance();
 const Power = scripting.addModule("/ti/drivers/Power");
@@ -38,6 +41,20 @@ GPIO3.gpioPin.$assign = "boosterpack2.10";
 GPIO4.$name           = "SS_L";
 GPIO4.mode            = "Output";
 GPIO4.gpioPin.$assign = "boosterpack2.30";
+
+GPIO5.$name           = "SS_RF";
+GPIO5.mode            = "Output";
+GPIO5.pull            = "Pull Down";
+GPIO5.gpioPin.$assign = "boosterpack2.36";
+
+GPIO6.$name           = "CE_RF";
+GPIO6.mode            = "Output";
+GPIO6.gpioPin.$assign = "boosterpack2.35";
+
+GPIO7.$name            = "INT_RF";
+GPIO7.pull             = "Pull Up";
+GPIO7.interruptTrigger = "Falling Edge";
+GPIO7.gpioPin.$assign  = "boosterpack.30";
 
 I2C1.$name              = "CONFIG_I2C_0";
 I2C1.i2c.$assign        = "I2C5";
