@@ -51,6 +51,7 @@ void Send_data_idle_fxn(void);
 void Wait_cycles(uint32_t numberCycles);
 float IMU2angle(IMU_data IMUdata, float prevAngle, float dt);
 int16_t constrainSpeed(int16_t inputVal);
+float constrainAngle(float inputVal);
 }
 
 typedef int16_t ConsData;
@@ -67,6 +68,19 @@ I2C_Handle init_I2C(void);
 /* Global variables */
 volatile uint16_t cnt_glb = 0;
 volatile uint8_t emer_glb = 0;
+
+float Kp = 20.0f;
+float Ki = 0.0f;
+float Kd = -9.0f; // fem -30.0f
+float intMax = 10.0f;
+float intFrac = 1.0f;
+float intMin = -intMax;
+int16_t offset = 0;
+float goalCons = 0.0f;
+int16_t minSpeed = 300;
+int16_t maxSpeed = 3200;
+ConsData baseSpeed = 2300;
+float propLeft = 1.0f;
 
 char singleRxChar;
 char uartTxBuf[128];
@@ -225,12 +239,12 @@ void TaskIMU(UArg arg1, UArg arg2)
     System_printf("I2C initialised \n");
     System_flush();
 
-    float offset = 0.0f;
+    float angleOffset = 10.0f;
     float angle = 0.0f;
     float currentAngle = 0.0f;
     IMU_Message sendToPID;
     int posNew = 0, posOldest = 1;
-    int N = 20; // 40
+    int N = 16; // 40
     //int N = 300;
     float angles[N];
     // Inicialitzacio timestamp
@@ -264,7 +278,7 @@ void TaskIMU(UArg arg1, UArg arg2)
 
         if(imu.read()){
         currentData = imu.getData();
-        angle = IMU2angle(currentData, angle, dt) + restAngle;
+        angle = IMU2angle(currentData, angle, dt) + restAngle + angleOffset;
         angles[i] = angle;
         }
     }
@@ -306,7 +320,7 @@ void TaskIMU(UArg arg1, UArg arg2)
             //snprintf(uartTxBuf, sizeof(uartTxBuf), "%f | ", angle);
             //snprintf(uartTxBuf, sizeof(uartTxBuf), "wangX = %d | ", currentData.gyX);
             //UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
-            sendToPID.angle = angle;
+            sendToPID.angle = constrainAngle(angle);
             sendToPID.wang = ((float) currentData.gyX) / GY_CTT;
 
             //snprintf(uartTxBuf, sizeof(uartTxBuf), "angle = %.2f | ", angle);
@@ -402,7 +416,6 @@ void TaskPID(UArg arg1, UArg arg2)
     //float currentCons = 0.0f;
     uint8_t currentCons_int = 128;
     float currentCons = 0.0f;
-    float goalCons = 0.0f;
     float currentAngle = 0.0f;
     IMU_Message receivedData;
 
@@ -421,9 +434,9 @@ void TaskPID(UArg arg1, UArg arg2)
     // oscil·la una mica a kp=28
     // Si agafem mesura wang, kd ha de ser negativa!
 
-    float Kp = 20.0f;
-    float Ki = 20.0f;
-    float Kd = -9.0f; // fem -30.0f
+    //float Kp = 20.0f;
+    //float Ki = 20.0f;
+    //float Kd = -9.0f; // fem -30.0f
 
 
     //float Kp = 27.5f;
@@ -431,8 +444,6 @@ void TaskPID(UArg arg1, UArg arg2)
     //float Kd = -16.0f; // fem -30.0f
 
     float integral = 0.0f;
-    float intMax = 10.0f;
-    float intMin = -intMax / 2.0f;
     float restAngle = 0.0f;
     Mailbox_pend(mailbox_cons, &restAngle, BIOS_NO_WAIT);
     float last_error = -restAngle;
@@ -452,10 +463,10 @@ void TaskPID(UArg arg1, UArg arg2)
             UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
 
             // Radio
-            goalCons = ((float) currentCons_int) / 127.0f * 25.0f;
+            //goalCons = ((float) currentCons_int) / 127.0f * 25.0f;
 
             // UART
-            //goalCons = ((float) currentCons_int) / 255.0f * 40.0f - 20.0f;
+            goalCons = ((float) currentCons_int) / 255.0f * 40.0f - 20.0f;
 
             __nop();
         }
@@ -489,6 +500,7 @@ void TaskPID(UArg arg1, UArg arg2)
                 //float error = currentCons - currentAngle;
                 float error = currentCons - receivedData.angle;
                 integral += error * dt;
+                intMin = -intMax/intFrac;//
                 if (integral > intMax)
                     integral = intMax;
                 if (integral < intMin)
@@ -507,7 +519,7 @@ void TaskPID(UArg arg1, UArg arg2)
                 snprintf(
                         uartTxBuf,
                         sizeof(uartTxBuf),
-                        "setpoint = %.2f | angle = %.2f | wang = %.3f | dt = %.6f | PID = %d \n",
+                        "setpoint = %.2f | angle = %.2f | wang = %.3f | dt = %.5f | PID = %d \n",
                         currentCons, receivedData.angle, receivedData.wang, dt, output);
 
                 //snprintf(uartTxBuf, sizeof(uartTxBuf),
@@ -589,7 +601,6 @@ void TaskSPI_TX(UArg arg1, UArg arg2)
 // Condicionament variable
     //int16_t baseSpeedRight = 2400;
     //int16_t baseSpeedLeft = 2650;
-    ConsData baseSpeed = 2300;
 
     SPI_init();
     SPI_Params spiParams;
@@ -645,8 +656,9 @@ void TaskSPI_TX(UArg arg1, UArg arg2)
          constrainSpeed(baseSpeed - pidOutput), pidOutput);
          System_flush();*/
 
-        LeftSpeed = constrainSpeed(baseSpeed + pidOutput + 150);
-        RightSpeed = constrainSpeed(baseSpeed - pidOutput);
+        LeftSpeed = constrainSpeed(baseSpeed + pidOutput + offset);
+        RightSpeed = constrainSpeed(baseSpeed - pidOutput - offset);
+        LeftSpeed = (int16_t) (propLeft * ( (float) LeftSpeed));
 
         //snprintf(uartTxBuf, sizeof(uartTxBuf), "PID: %d \n", pidOutput);
 
@@ -705,17 +717,32 @@ I2C_Handle init_I2C(void)
 
 float IMU2angle(IMU_data IMUdata, float prevAngle, float dt)
 {
-    float acc_angle = atan2f((float) IMUdata.accY, (float) IMUdata.accZ)
+    float acc_angle = atan2f((float) IMUdata.accX, (float) IMUdata.accZ)
             * (180.0f / 3.14159265f);
-    float newAngle = alpha * (prevAngle + ((float) IMUdata.gyX) / GY_CTT * dt)
+    float newAngle = alpha * (prevAngle + ((float) IMUdata.gyY) / GY_CTT * dt)
             + (1.0f - alpha) * acc_angle;
     return newAngle;
 }
 
 int16_t constrainSpeed(int16_t inputVal)
 {
-    int16_t minVal = 1200; // 300
-    int16_t maxVal = 3400; // 3200
+    //int16_t minVal = 1200; // 300
+    //int16_t maxVal = 3400; // 3200
+    int16_t minVal = minSpeed; // 300
+    int16_t maxVal = maxSpeed; // 3200
+
+    if (inputVal < minVal)
+        return minVal;
+    if (inputVal > maxVal)
+        return maxVal;
+    return inputVal;
+}
+
+
+float constrainAngle(float inputVal)
+{
+    float minVal = -50.0f;
+    float maxVal = 50.0f;
 
     if (inputVal < minVal)
         return minVal;
