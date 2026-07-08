@@ -69,18 +69,28 @@ I2C_Handle init_I2C(void);
 volatile uint16_t cnt_glb = 0;
 volatile uint8_t emer_glb = 0;
 
-float Kp = 20.0f;
-float Ki = 0.0f;
-float Kd = -9.0f; // fem -30.0f
-float intMax = 10.0f;
+float Kp = 30.0f;
+float Ki = 80.0f;
+//float Kd = 2.5f;
+float Kd = 5.0f;
+float intMax = 5.0f;
+
+//float Kp = 35.0f;
+//float Ki = 90.0f;
+//float Kd = 5.0f;
+//float intMax = 8.0f;
+
 float intFrac = 1.0f;
 float intMin = -intMax;
-int16_t offset = 0;
+int16_t offset = 0; //150;
 float goalCons = 0.0f;
-int16_t minSpeed = 300;
-int16_t maxSpeed = 3200;
-ConsData baseSpeed = 2300;
+float consSlewRate = 0.2f;
+int16_t minSpeed = 2500;
+int16_t maxSpeed = 3500;
+ConsData baseSpeed = 3000;
 float propLeft = 1.0f;
+float angleOffset = 0.0f;//15.0f;
+int N = 15; // 40
 
 char singleRxChar;
 char uartTxBuf[128];
@@ -113,6 +123,7 @@ SPI_Handle spiHandle_master;
 
 #define FLAG_IMU Event_Id_00
 #define FLAG_CONS Event_Id_01
+#define FLAG_PRINT Event_Id_02
 
 /*
  *  ======== main ========
@@ -239,12 +250,10 @@ void TaskIMU(UArg arg1, UArg arg2)
     System_printf("I2C initialised \n");
     System_flush();
 
-    float angleOffset = 10.0f;
     float angle = 0.0f;
     float currentAngle = 0.0f;
     IMU_Message sendToPID;
     int posNew = 0, posOldest = 1;
-    int N = 16; // 40
     //int N = 300;
     float angles[N];
     // Inicialitzacio timestamp
@@ -256,16 +265,28 @@ void TaskIMU(UArg arg1, UArg arg2)
 
     IMU_data currentData;
 
-    System_printf("Abans de restAngle \n");
+    System_printf("Abans de calibrar \n");
     System_flush();
 
-    // Calibracio IMU
-    float restAngle = imu.calibrate(1000) * (180.0f / 3.14159265f);
+    // Give the user time to hold the beam level before sampling starts,
+    // counting down over UART so it's visible on the terminal being watched.
+    for (int c = 5; c > 0; c--)
+    {
+        snprintf(uartTxBuf, sizeof(uartTxBuf), "Calibrating in %d... hold it level!\n", c);
+        UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
+        Task_sleep(1000);
+    }
 
-    Mailbox_post(mailbox_restAngle, &restAngle, BIOS_NO_WAIT);
-    //restAngle = 0.0f;
+    snprintf(uartTxBuf, sizeof(uartTxBuf), "Calibrating now, keep it still (~1s)...\n");
+    UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
 
-    System_printf("Despres de restAngle \n");
+    // Calibracio IMU (assumes it is being held level / 0 degrees right now)
+    imu.calibrate(1000);
+
+    snprintf(uartTxBuf, sizeof(uartTxBuf), "Calibration done!\n");
+    UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
+
+    System_printf("Despres de calibrar \n");
     System_flush();
 
     // Inicialitzacio vector promig
@@ -278,7 +299,7 @@ void TaskIMU(UArg arg1, UArg arg2)
 
         if(imu.read()){
         currentData = imu.getData();
-        angle = IMU2angle(currentData, angle, dt) + restAngle + angleOffset;
+        angle = IMU2angle(currentData, angle, dt);
         angles[i] = angle;
         }
     }
@@ -302,7 +323,7 @@ void TaskIMU(UArg arg1, UArg arg2)
 
             currentData = imu.getData();
 
-            angles[posNew] = IMU2angle(currentData, angle, dt) + restAngle;
+            angles[posNew] = IMU2angle(currentData, angle, dt) + angleOffset;
 
             angle += (angles[posNew] - angles[posOldest]) / ((float) N);
 
@@ -321,7 +342,7 @@ void TaskIMU(UArg arg1, UArg arg2)
             //snprintf(uartTxBuf, sizeof(uartTxBuf), "wangX = %d | ", currentData.gyX);
             //UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
             sendToPID.angle = constrainAngle(angle);
-            sendToPID.wang = ((float) currentData.gyX) / GY_CTT;
+            sendToPID.wang = ((float) currentData.gyY) / GY_CTT;
 
             //snprintf(uartTxBuf, sizeof(uartTxBuf), "angle = %.2f | ", angle);
 
@@ -342,47 +363,48 @@ void TaskIMU(UArg arg1, UArg arg2)
 void task_readUART(UArg arg1, UArg arg2)
 {
     char singleRxChar;
-    char uartRxBufLocal[16]; // Local buffer for the string
+    char uartRxBufLocal[32]; // Local buffer for the command string
     uint8_t localRxIndex = 0;
 
-    while (1) // <-- CRITICAL: Tasks must have an infinite loop!
+    while (1)
     {
-        // 1. Block and wait here until exactly 1 character is received
+        // Block and wait here until 1 character is received
         UART_read(uartHandle_rx, &singleRxChar, 1);
 
-        // 2. Assign the received character to your data variable
+        // Assign the received character to your data variable
         char data = singleRxChar;
 
-        // 3. Process the character
+        // Process the character
         if (data == '\n' || data == '\r')
         {
-            //Task_sleep(20000);
-
-            //System_printf("Enter? \n");
-            //System_flush();
             if (localRxIndex > 0)
             {
                 uartRxBufLocal[localRxIndex] = '\0'; // Null-terminate safely
 
-                // Convert text to integer
-                uint8_t parsedVal = (uint8_t) atoi(uartRxBufLocal);
-
-                if ((parsedVal >= 0) && (parsedVal < 256))
+                // Commands understood:
+                //   "angle"        -> print the current PID telemetry once
+                //   "angle <val>"  -> directly set the target angle (goalCons)
+                if (strncmp(uartRxBufLocal, "angle", 5) == 0)
                 {
+                    char *args = uartRxBufLocal + 5;
+                    while (*args == ' ')
+                    {
+                        args++; // skip separating whitespace, if any
+                    }
 
-                    // Send down the pipeline
-                    Mailbox_post(mailbox_cons, &parsedVal, BIOS_NO_WAIT);
-                    Event_post(event_data, FLAG_CONS);
+                    if (*args == '\0')
+                    {
+                        // No value given -> request a one-shot telemetry print
+                        Event_post(event_data, FLAG_PRINT);
+                    }
+                    else
+                    {
+                        // Value given -> set the target angle directly
+                        goalCons = (float) atof(args);
+                    }
                 }
 
-                localRxIndex = 0; // Reset index for the next number
-            }
-        }
-        else if ((data >= '0' && data <= '9') || data == '-')
-        {
-            if (localRxIndex < sizeof(uartRxBufLocal) - 1)
-            {
-                uartRxBufLocal[localRxIndex++] = data;
+                localRxIndex = 0; // Reset index for the next command
             }
         }
         else if (data == '\b' || data == 127)
@@ -390,6 +412,14 @@ void task_readUART(UArg arg1, UArg arg2)
             if (localRxIndex > 0)
             {
                 localRxIndex--;
+            }
+        }
+        else
+        {
+            // Accumulate any other printable character (letters, digits, '.', '-', spaces)
+            if (localRxIndex < sizeof(uartRxBufLocal) - 1)
+            {
+                uartRxBufLocal[localRxIndex++] = data;
             }
         }
     }
@@ -431,7 +461,7 @@ void TaskPID(UArg arg1, UArg arg2)
 
 // Constants PID
 
-    // oscil·la una mica a kp=28
+    // oscilï¿½la una mica a kp=28
     // Si agafem mesura wang, kd ha de ser negativa!
 
     //float Kp = 20.0f;
@@ -447,11 +477,12 @@ void TaskPID(UArg arg1, UArg arg2)
     float restAngle = 0.0f;
     Mailbox_pend(mailbox_cons, &restAngle, BIOS_NO_WAIT);
     float last_error = -restAngle;
+    int16_t output = 0;
 
     while (1)
     {
         UInt events = Event_pend(event_data, Event_Id_NONE,
-        FLAG_IMU | FLAG_CONS,
+        FLAG_IMU | FLAG_CONS | FLAG_PRINT,
                                  BIOS_WAIT_FOREVER);
 
         if (events & FLAG_CONS)
@@ -459,14 +490,11 @@ void TaskPID(UArg arg1, UArg arg2)
             // Update target from mailbox
             Mailbox_pend(mailbox_cons, &currentCons_int, BIOS_NO_WAIT);
 
-            snprintf(uartTxBuf, sizeof(uartTxBuf), "received data \n");
-            UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
-
             // Radio
             //goalCons = ((float) currentCons_int) / 127.0f * 25.0f;
 
-            // UART
-            goalCons = ((float) currentCons_int) / 255.0f * 40.0f - 20.0f;
+            // UART, 0.8
+            goalCons = ( ((float) currentCons_int) / 255.0f * 40.0f - 20.0f );
 
             __nop();
         }
@@ -481,9 +509,9 @@ void TaskPID(UArg arg1, UArg arg2)
                  System_flush();*/
 
                 if (goalCons > currentCons)
-                    currentCons += 0.5f;
+                    currentCons += consSlewRate;
                 if (goalCons < currentCons)
-                    currentCons -= 0.5f;
+                    currentCons -= consSlewRate;
 
                 if (Semaphore_pend(semaphore_test, BIOS_NO_WAIT))
                 {
@@ -508,29 +536,26 @@ void TaskPID(UArg arg1, UArg arg2)
 
                 float derivative = receivedData.wang; //(error - last_error) / dt;
                 //float der_old = (error - last_error) / dt;
-                int16_t output = (int16_t) ((Kp * error) + (Ki * integral)
+                output = (int16_t) ((Kp * error) + (Ki * integral)
                         + (Kd * derivative));
                 last_error = error;
-
-                // EL QUE ES FA SERVIR DE VERITAT
-                //snprintf(uartTxBuf, sizeof(uartTxBuf),
-                //         "intTerm = %.1f | cons = %.1f | ", integral,
-                //         currentCons);
-                snprintf(
-                        uartTxBuf,
-                        sizeof(uartTxBuf),
-                        "setpoint = %.2f | angle = %.2f | wang = %.3f | dt = %.5f | PID = %d \n",
-                        currentCons, receivedData.angle, receivedData.wang, dt, output);
-
-                //snprintf(uartTxBuf, sizeof(uartTxBuf),
-                //         "physwang = %.2f | numder = %.2f \n", receivedData.wang, der_old);
-
-                UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
 
                 // Send computed value to SPI TX task
                 Mailbox_post(mailbox_pid, &output, BIOS_NO_WAIT);
                 //Mailbox_post(mailbox_pid, &currentCons, BIOS_NO_WAIT);
             }
+        }
+
+        if (events & FLAG_PRINT)
+        {
+            // One-shot telemetry dump, triggered by sending "angle" (no value) over UART
+            snprintf(
+                    uartTxBuf,
+                    sizeof(uartTxBuf),
+                    "setpoint = %.2f | angle = %.2f | wang = %.3f | dt = %.5f | PID = %d \n",
+                    currentCons, receivedData.angle, receivedData.wang, dt, output);
+
+            UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
         }
     }
 }

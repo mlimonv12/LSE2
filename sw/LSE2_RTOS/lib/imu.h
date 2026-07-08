@@ -44,11 +44,8 @@ public:
     // Initializes the IMU (wakes it up and sets scaling)
     bool init(I2C_Handle i2cHandle);
 
-    // Checks whether the swing is leaning right or left
-    //bool checkRight();
-
-    // Calibrates IMU
-    float calibrate(int N);
+    // Calibrates IMU. Call while holding it level (0 degrees).
+    void calibrate(int N);
 
     // Reads the latest data from the IMU
     bool read();

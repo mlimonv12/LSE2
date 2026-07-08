@@ -86,7 +86,7 @@ bool IMU::leanRight() {
 }*/
 
 
-float IMU::calibrate(int N) {
+void IMU::calibrate(int N) {
 
     for (int i = 0; i < N; i++) {
 
@@ -102,42 +102,14 @@ float IMU::calibrate(int N) {
         }
     }
 
+    // Assumes the beam is being held level (0 degrees) right now, so the
+    // averaged raw reading directly IS the sensor's own bias.
     ofs.accX /= N;
-    //ofs.accY = (ofs.accY / N) + ((int16_t) (ACC_CTT * sinf(restAngle)));
-    //ofs.accZ = (ofs.accZ / N) - ((int16_t) (ACC_CTT * cosf(restAngle)));
     ofs.accY /= N;
     ofs.accZ = (ofs.accZ / N) - ((int16_t) ACC_CTT);
     ofs.gyX /= N;
     ofs.gyY /= N;
     ofs.gyZ /= N;
-
-    restAngle = 28.75f * (3.14159265f / 180.0f);
-
-    int32_t checkSide = 0;
-    int Ncheck = 10;
-
-    for (int i = 0; i < Ncheck; i++) {
-        if (I2C_transfer(i2cHandle, &i2cTransaction)) {
-
-            checkSide += ((rxBuffer[2] << 8) | rxBuffer[3]);// - ofs.accY;
-        }
-    }
-
-    checkSide /= Ncheck;
-
-    System_printf("Checkside = %d \n", checkSide);
-    System_flush();
-
-    if (checkSide > 10000) {
-        restAngle *= -1.0f;
-        System_printf("LEANING LEFT \n");
-    } else {
-        System_printf("LEANING RIGHT \n");
-    }
-    System_flush();
-
-
-    return restAngle;
 }
 
 
