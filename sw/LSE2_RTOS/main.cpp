@@ -92,6 +92,8 @@ float propLeft = 1.0f;
 float angleOffset = 0.0f;//15.0f;
 int N = 15; // 40
 
+float angleScale = 1.5f;
+
 char singleRxChar;
 char uartTxBuf[128];
 char uartRxBuf[128];
@@ -399,8 +401,9 @@ void task_readUART(UArg arg1, UArg arg2)
                     }
                     else
                     {
-                        // Value given -> set the target angle directly
-                        goalCons = (float) atof(args);
+                        // Value given, in real-world degrees -> convert to
+                        // the internal (PID-facing) scale before storing it
+                        goalCons = (float) atof(args) * angleScale;
                     }
                 }
 
@@ -548,12 +551,14 @@ void TaskPID(UArg arg1, UArg arg2)
 
         if (events & FLAG_PRINT)
         {
-            // One-shot telemetry dump, triggered by sending "angle" (no value) over UART
+            // One-shot telemetry dump, triggered by sending "angle" (no value) over UART.
+            // setpoint/angle are converted back from internal PID units to
+            // real-world degrees (inverse of the scaling applied on input).
             snprintf(
                     uartTxBuf,
                     sizeof(uartTxBuf),
                     "setpoint = %.2f | angle = %.2f | wang = %.3f | dt = %.5f | PID = %d \n",
-                    currentCons, receivedData.angle, receivedData.wang, dt, output);
+                    currentCons / angleScale, receivedData.angle / angleScale, receivedData.wang, dt, output);
 
             UART_write(uartHandle_rx, uartTxBuf, strlen(uartTxBuf));
         }
@@ -766,8 +771,8 @@ int16_t constrainSpeed(int16_t inputVal)
 
 float constrainAngle(float inputVal)
 {
-    float minVal = -50.0f;
-    float maxVal = 50.0f;
+    float minVal = -90.0f;
+    float maxVal = 90.0f;
 
     if (inputVal < minVal)
         return minVal;
