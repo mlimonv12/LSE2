@@ -94,6 +94,9 @@ int N = 15; // 40
 
 float angleScale = 1.5f;
 
+// Largest setpoint magnitude allowed in, in real-world degrees
+float maxSetpointDeg = 30.0f;
+
 char singleRxChar;
 char uartTxBuf[128];
 char uartRxBuf[128];
@@ -366,6 +369,8 @@ void task_readUART(UArg arg1, UArg arg2)
 {
     char singleRxChar;
     char uartRxBufLocal[32]; // Local buffer for the command string
+    char replyBuf[48];       // Dedicated reply buffer -- avoids racing with the
+                             // shared uartTxBuf, which TaskPID/TaskIMU also write to
     uint8_t localRxIndex = 0;
 
     while (1)
@@ -401,9 +406,21 @@ void task_readUART(UArg arg1, UArg arg2)
                     }
                     else
                     {
-                        // Value given, in real-world degrees -> convert to
-                        // the internal (PID-facing) scale before storing it
-                        goalCons = (float) atof(args) * angleScale;
+                        // Value given, in real-world degrees
+                        float requestedAngle = (float) atof(args);
+
+                        if (fabsf(requestedAngle) > maxSetpointDeg)
+                        {
+                            snprintf(replyBuf, sizeof(replyBuf),
+                                     "setpoint not allowed, maximum is %.0f\n",
+                                     maxSetpointDeg);
+                            UART_write(uartHandle_rx, replyBuf, strlen(replyBuf));
+                        }
+                        else
+                        {
+                            // Convert to the internal (PID-facing) scale before storing it
+                            goalCons = requestedAngle * angleScale;
+                        }
                     }
                 }
 
@@ -447,7 +464,7 @@ void TaskPID(UArg arg1, UArg arg2)
     Semaphore_pend(semaphore_SPI_ready, BIOS_WAIT_FOREVER);
 
     //float currentCons = 0.0f;
-    uint8_t currentCons_int = 128;
+    int8_t currentCons_int = 0;
     float currentCons = 0.0f;
     float currentAngle = 0.0f;
     IMU_Message receivedData;
@@ -490,14 +507,20 @@ void TaskPID(UArg arg1, UArg arg2)
 
         if (events & FLAG_CONS)
         {
-            // Update target from mailbox
+            // Update target from mailbox (RF, signed raw joystick byte, -128..127)
             Mailbox_pend(mailbox_cons, &currentCons_int, BIOS_NO_WAIT);
 
-            // Radio
-            //goalCons = ((float) currentCons_int) / 127.0f * 25.0f;
+            // Map the signed raw payload to a real-world degree request, then
+            // apply the same safety clamp and internal scaling the UART "angle"
+            // command uses, so both sources land on goalCons consistently.
+            float requestedAngle = ((float) currentCons_int) / 127.0f * maxSetpointDeg;
 
-            // UART, 0.8
-            goalCons = ( ((float) currentCons_int) / 255.0f * 40.0f - 20.0f );
+            if (requestedAngle > maxSetpointDeg)
+                requestedAngle = maxSetpointDeg;
+            if (requestedAngle < -maxSetpointDeg)
+                requestedAngle = -maxSetpointDeg;
+
+            goalCons = requestedAngle * angleScale;
 
             __nop();
         }
@@ -511,9 +534,13 @@ void TaskPID(UArg arg1, UArg arg2)
                 /*System_printf("Calculem PID \n");
                  System_flush();*/
 
-                if (goalCons > currentCons)
+                // Snap to the target once within one step, instead of
+                // stepping past it and oscillating by +-consSlewRate forever
+                if (fabsf(goalCons - currentCons) <= consSlewRate)
+                    currentCons = goalCons;
+                else if (goalCons > currentCons)
                     currentCons += consSlewRate;
-                if (goalCons < currentCons)
+                else if (goalCons < currentCons)
                     currentCons -= consSlewRate;
 
                 if (Semaphore_pend(semaphore_test, BIOS_NO_WAIT))
